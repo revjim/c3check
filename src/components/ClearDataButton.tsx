@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buttonClasses } from "@/components/button";
 import { clearStoredData } from "@/lib/consent";
 
 /**
@@ -21,7 +22,7 @@ export function ClearDataButton() {
       <button
         type="button"
         onClick={handleClear}
-        className="inline-flex h-10 items-center rounded-full border border-border px-5 text-sm font-medium transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className={buttonClasses("secondary")}
       >
         Clear my data
       </button>

@@ -11,6 +11,7 @@ import {
   isBefore,
   isOnOrAfter,
   isOnOrBefore,
+  isValidCalendarDate,
   isoDate,
   pivotFor,
   resolvePlace,
@@ -34,6 +35,43 @@ describe("comparators", () => {
     expect(() => isoDate("1947-1-1")).toThrow();
     expect(() => isoDate("January 1, 1947")).toThrow();
     expect(isoDate(ACT_1947)).toBe(ACT_1947);
+  });
+});
+
+describe("isValidCalendarDate", () => {
+  it("catches the day that is ISO-shaped but not on the calendar", () => {
+    // The hole isoDate leaves open. `1931-02-31` passes the shape check and
+    // then compares as a real date, so it would produce a paragraph rather
+    // than an error.
+    expect(isoDate("1931-02-31")).toBe("1931-02-31");
+    expect(isValidCalendarDate("1931-02-31")).toBe(false);
+  });
+
+  it("accepts a real day", () => {
+    expect(isValidCalendarDate("1931-02-28")).toBe(true);
+    expect(isValidCalendarDate(ACT_1947)).toBe(true);
+  });
+
+  it("knows which Februaries have 29 days", () => {
+    expect(isValidCalendarDate("1932-02-29")).toBe(true);
+    expect(isValidCalendarDate("1931-02-29")).toBe(false);
+    // Gregorian century rule, both directions.
+    expect(isValidCalendarDate("1900-02-29")).toBe(false);
+    expect(isValidCalendarDate("2000-02-29")).toBe(true);
+  });
+
+  it("knows the thirty-day months", () => {
+    expect(isValidCalendarDate("1947-04-31")).toBe(false);
+    expect(isValidCalendarDate("1947-04-30")).toBe(true);
+    expect(isValidCalendarDate("1947-12-31")).toBe(true);
+  });
+
+  it("rejects a month or day out of range, and anything misshapen", () => {
+    expect(isValidCalendarDate("1947-13-01")).toBe(false);
+    expect(isValidCalendarDate("1947-00-01")).toBe(false);
+    expect(isValidCalendarDate("1947-01-00")).toBe(false);
+    expect(isValidCalendarDate("1947-1-1")).toBe(false);
+    expect(isValidCalendarDate("")).toBe(false);
   });
 });
 

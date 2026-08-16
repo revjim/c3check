@@ -111,6 +111,18 @@ export const SOURCES: Source[] = [
   },
 ];
 
+/**
+ * The source a trace line cites, or undefined if the id is unknown.
+ *
+ * `catalogue.test.ts` already asserts that every id cited by the rule table
+ * resolves here, so in practice the undefined branch is unreachable; callers
+ * still have to handle it, because a rule added without its source is exactly
+ * the mistake worth degrading gracefully on rather than crashing a results page.
+ */
+export function sourceById(id: string): Source | undefined {
+  return SOURCES.find((source) => source.id === id);
+}
+
 export const SOURCES_BY_KIND: { kind: SourceKind; label: string }[] = [
   { kind: "statute", label: "Legislation" },
   { kind: "bill", label: "Amending Acts" },

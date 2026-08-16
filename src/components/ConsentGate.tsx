@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { buttonClasses } from "@/components/button";
 import {
   acceptTerms,
   getServerSnapshot,
@@ -68,7 +69,7 @@ export function ConsentGate({ children }: { children: React.ReactNode }) {
       <button
         type="button"
         onClick={acceptTerms}
-        className="mt-10 inline-flex h-11 items-center rounded-full bg-brand px-6 font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className={buttonClasses("primary", "mt-10")}
       >
         I understand, start the interview
       </button>

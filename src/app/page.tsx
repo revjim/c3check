@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buttonClasses } from "@/components/button";
 import { ACT_AS_OF } from "@/lib/sources";
 
 const STEPS = [
@@ -40,7 +41,7 @@ export default function Home() {
       <div className="mt-8 flex flex-wrap items-center gap-4">
         <Link
           href="/check"
-          className="inline-flex h-11 items-center rounded-full bg-brand px-6 font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          className={buttonClasses("primary")}
         >
           Check a family line
         </Link>

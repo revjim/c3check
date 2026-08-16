@@ -172,7 +172,7 @@ describe("the fact catalogue", () => {
     }
   });
 
-  it("leaves exactly the two facts with no safe default undefaulted", () => {
+  it("leaves exactly the four facts with no safe default undefaulted", () => {
     // Widening this set silently is how a tool starts guessing. Narrowing it is
     // how a tool starts refusing to answer anything.
     expect([...FACTS_WITHOUT_DEFAULTS].sort()).toEqual(
