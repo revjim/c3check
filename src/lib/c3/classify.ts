@@ -50,13 +50,35 @@ import type {
 // Entry point
 // ---------------------------------------------------------------------------
 
+export type ClassifyOptions = {
+  /**
+   * Re-run the chain with each applied default inverted, to find which
+   * assumptions actually carry the answer. On by default: a result that lists
+   * forty assumptions without saying which three matter has told the reader
+   * everything and nothing.
+   *
+   * Set false inside a re-run, which is the only place it should be false.
+   */
+  assessAssumptions?: boolean;
+};
+
 /**
  * Classifies one line of descent.
  *
  * `people` runs anchor first, applicant last; each person's parent is the entry
  * before them. Pure: no I/O, no system clock, no mutation of the input.
  */
-export function classifyChain(people: Person[]): ChainResult {
+export function classifyChain(
+  people: Person[],
+  options: ClassifyOptions = {},
+): ChainResult {
+  const result = runChain(people);
+  if (options.assessAssumptions === false) return result;
+  markDecisiveAssumptions(people, result);
+  return result;
+}
+
+function runChain(people: Person[]): ChainResult {
   if (people.length === 0) {
     throw new Error("A chain needs at least one person.");
   }
@@ -82,7 +104,11 @@ export function classifyChain(people: Person[]): ChainResult {
   return {
     statuses,
     applicant,
-    headline: headlineFor(applicant, advisories.length > 0),
+    headline: headlineFor(
+      applicant,
+      advisories.length > 0,
+      lacksAnchor(people, statuses),
+    ),
     advisories,
     // Keyed on the statement rather than the fact where there is no fact — the
     // aliveness assumption is made per date, and collapsing two dates into one
@@ -672,12 +698,50 @@ function amendmentFor(
 // Headline
 // ---------------------------------------------------------------------------
 
-function headlineFor(applicant: Status, hasAdvisories: boolean): Headline {
+/**
+ * The line as entered has no anchor: nobody in it was born in Canada or in
+ * Newfoundland before the union, and nobody naturalised there.
+ *
+ * Every paragraph that does not depend on a citizen parent — (a), (d), (k) and
+ * (l) — requires birth or naturalisation in one of those places, and (m) and (n)
+ * require having been there on the pivot date. So a chain of people all born
+ * abroad has nothing to reason from, and reporting that as "not a citizen" is
+ * wrong twice over: it answers a question nobody asked, and it does so in the
+ * one direction that makes someone stop looking.
+ *
+ * The engine cannot know whether the user has more ancestors to add. It can know
+ * that it has not been given an anchor, which is what this says.
+ */
+function lacksAnchor(people: Person[], statuses: Status[]): boolean {
+  // An unresolved or halted chain is already saying something truer than this.
+  if (!statuses.every((s) => s.outcome === "fails")) return false;
+  return people.every(
+    (person) =>
+      resolvePlace(person.birthRegion, person.birthDate) === "abroad" &&
+      person.facts?.naturalizedInCanada !== true,
+  );
+}
+
+function headlineFor(
+  applicant: Status,
+  hasAdvisories: boolean,
+  noAnchor: boolean,
+): Headline {
   const flagged = applicant.flags.length > 0 || hasAdvisories;
   const base = {
     paragraph: applicant.paragraph,
     effectiveDate: applicant.effectiveDate,
   };
+
+  if (noAnchor) {
+    return {
+      ...base,
+      verdict: "incomplete",
+      confidence: "unknown",
+      summary:
+        "No one in this line was born in Canada, or in Newfoundland and Labrador before it joined Confederation, so there is no ancestor to reason from yet. Add the earliest ancestor you know of and this will start to resolve. Every route to citizenship by descent begins with someone who was there.",
+    };
+  }
 
   switch (applicant.outcome) {
     case "qualifies":
@@ -720,7 +784,68 @@ function headlineFor(applicant: Status, hasAdvisories: boolean): Headline {
           applicant.stopReason?.detail ??
           `This tool stops short of classifying ${applicant.label}.`,
       };
+    case "incomplete":
+      // Chain-level only, and handled by the early return above. No person is
+      // ever given this outcome, so reaching here means that invariant broke.
+      throw new Error(
+        "'incomplete' is a chain-level verdict and must not be set on a person.",
+      );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Which assumptions actually carry the answer
+// ---------------------------------------------------------------------------
+
+/**
+ * Stamps `decisive` on every assumption by re-running the chain with that
+ * default inverted and seeing whether the applicant's answer moves.
+ *
+ * A five-generation chain reads around forty defaults, so this is forty extra
+ * runs. The engine is pure and a run is a fraction of a millisecond, so the cost
+ * is nothing next to what it buys: the difference between "here are forty things
+ * we assumed" and "three of these would change your answer if we have them
+ * wrong, and here they are".
+ *
+ * Decisiveness is measured against the *applicant*, because that is the answer
+ * being reported. A flip that changes a paragraph half way up the line without
+ * moving the applicant's own is real but not what the reader is deciding on.
+ */
+function markDecisiveAssumptions(people: Person[], result: ChainResult): void {
+  const baseline = result.applicant;
+
+  for (const status of result.statuses) {
+    for (const assumption of status.assumptions) {
+      if (assumption.factId === null) continue; // aliveness — no single inverse
+      const inverted = invertFact(people, assumption.personId, assumption.factId);
+      if (inverted === null) continue;
+      const alternative = runChain(inverted).applicant;
+      assumption.decisive =
+        alternative.outcome !== baseline.outcome ||
+        alternative.paragraph !== baseline.paragraph ||
+        alternative.effectiveDate !== baseline.effectiveDate;
+    }
+  }
+}
+
+/**
+ * A copy of the chain with one boolean fact set to the opposite of the default
+ * that was applied. Returns null for anything not a boolean — a numeric fact has
+ * no inverse, and in any case only facts with defaults become assumptions.
+ */
+function invertFact(
+  people: Person[],
+  personId: string,
+  factId: FactId,
+): Person[] | null {
+  const fallback = FACTS[factId].defaultWhenUnasked;
+  if (typeof fallback !== "boolean") return null;
+
+  return people.map((person) =>
+    person.id === personId
+      ? { ...person, facts: { ...person.facts, [factId]: !fallback } }
+      : person,
+  );
 }
 
 // ---------------------------------------------------------------------------

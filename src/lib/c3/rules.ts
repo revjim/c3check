@@ -495,6 +495,14 @@ function ordinarilyResidentRule(ctx: RuleContext, paragraph: "m" | "n"): RuleVer
   ) {
     return no(`became a citizen on or before ${pivot} in any event`);
   }
+  // Gate the branch before asking anything that has no safe default. Someone
+  // whose family left and never returned cannot be an (m) or an (n), and there
+  // is no point asking them three questions about residence in 1947 to find out.
+  if (ctx.bool("livedInCanadaOrNewfoundland") !== true) {
+    return no(
+      `never lived in ${where}, so was not ordinarily resident there on ${pivot}`,
+    );
+  }
   const naturalised = ctx.bool("naturalizedInCanada");
   if (naturalised === undefined) {
     return unknown(

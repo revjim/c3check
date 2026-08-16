@@ -111,6 +111,7 @@ export const overlapChain: Person[] = [
     birthRegion: "outside",
     deathDate: "1988-09-09",
     facts: {
+      livedInCanadaOrNewfoundland: true,
       britishSubjectOnPivot: true,
       ordinarilyResidentOnPivot: true,
       canadianDomicileOnPivot: false,

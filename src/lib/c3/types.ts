@@ -94,6 +94,14 @@ export type PersonFacts = {
   ceasedBritishSubject?: boolean;
   /** Was a British subject on the pivot date. Needed by (m) and (n). */
   britishSubjectOnPivot?: boolean;
+  /**
+   * Ever lived in Canada or in Newfoundland before the union at all. Gates the
+   * whole (m)/(n) branch: those paragraphs reach only people who were physically
+   * in one of those places on the pivot date, and for most lines the family
+   * emigrated and stayed away. Defaults to no, so the three facts below are
+   * asked only of someone who might actually satisfy them.
+   */
+  livedInCanadaOrNewfoundland?: boolean;
   /** Was ordinarily resident in Canada / Newfoundland on the pivot date. (m), (n). */
   ordinarilyResidentOnPivot?: boolean;
   /**
@@ -169,8 +177,20 @@ export type Person = {
  * `undetermined` means "cannot answer without more information", never
  * "probably fine". `stopped` means the chain contains something v1 declines to
  * model rather than guess at.
+ *
+ * `incomplete` is a chain-level verdict and never appears on a person: the line
+ * as entered contains no anchor at all, so there is nothing to reason from yet.
+ * It is kept apart from `fails` because "you have not finished describing your
+ * family" is not the same answer as "you are not a citizen", and an interview
+ * that walks backwards from the applicant passes through that state on every
+ * screen but the last.
  */
-export type Outcome = "qualifies" | "fails" | "undetermined" | "stopped";
+export type Outcome =
+  | "qualifies"
+  | "fails"
+  | "undetermined"
+  | "stopped"
+  | "incomplete";
 
 /** Which amending Act put this person inside s. 3(1). Drives the advisory layer. */
 export type Amendment = "c-37" | "c-24" | "c-3" | "pre-existing";
@@ -194,6 +214,17 @@ export type Assumption = {
   statement: string;
   why: string;
   documents: string[];
+  /**
+   * Whether flipping this default changes the applicant's answer — found by
+   * re-running the chain with it inverted.
+   *
+   * `true` means this is worth going and establishing; `false` means it was
+   * assumed but carried nothing. `undefined` means it was not assessed, which
+   * currently happens only for the assumption that someone with no recorded
+   * date of death was still alive: there is no single inverse of that to test,
+   * though a death before 1947 genuinely can decide a paragraph.
+   */
+  decisive?: boolean;
 };
 
 /** A fact with no safe default that has not been supplied. */

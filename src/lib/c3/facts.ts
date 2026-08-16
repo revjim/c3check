@@ -49,6 +49,16 @@ export const FACTS: Record<FactId, FactEntry> = {
     // at all — the difference between a (k) anchor and no anchor.
     documents: "loss-of-british-subject-status",
   },
+  livedInCanadaOrNewfoundland: {
+    id: "livedInCanadaOrNewfoundland",
+    question:
+      "Did {person} ever live in Canada, or in Newfoundland and Labrador before 1 April 1949?",
+    why: "Paragraphs 3(1)(m) and (n) reach British subjects who were living in Canada or Newfoundland on the pivot date but were not born or naturalised there. If the family emigrated and never came back, that whole branch is closed and three further questions do not need asking.",
+    defaultWhenUnasked: false,
+    defaultStatement:
+      "assumed never to have lived in Canada or in pre-union Newfoundland, closing off paragraphs (m) and (n)",
+    documents: "residence-on-pivot-date",
+  },
   britishSubjectOnPivot: {
     id: "britishSubjectOnPivot",
     question:

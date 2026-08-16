@@ -23,34 +23,33 @@ describe("3(2.1) — declaration of alienage", () => {
   });
 
   it("takes the whole line down with it", () => {
-    // Barring the anchor leaves nobody below with a claim by descent. It does
-    // not leave them with *no* claim: each person born before 1947 might still
-    // be an (m) in their own right, which nobody has been asked about — so the
-    // engine says so rather than reporting a refusal it cannot support.
     const barred = withFacts(gcmsChain, "g0", { declarationOfAlienage: true });
-    const result = classifyChain(barred);
-
-    expect(result.statuses[0].outcome).toBe("fails");
-    expect(result.statuses.slice(1).map((s) => s.outcome)).toEqual(
-      Array(4).fill("undetermined"),
-    );
-    expect(result.statuses[1].missing.map((m) => m.factId)).toContain(
-      "britishSubjectOnPivot",
+    expect(classifyChain(barred).statuses.map((s) => s.outcome)).toEqual(
+      Array(5).fill("fails"),
     );
   });
 
-  it("reads as a plain failure once those own-right questions are answered", () => {
-    const answered = ["g1", "g2", "g3"].reduce(
-      (chain, id) =>
-        withFacts(chain, id, {
-          britishSubjectOnPivot: false,
-          ordinarilyResidentOnPivot: false,
-        }),
+  it("leaves the (m) route open for anyone who did live in Canada", () => {
+    // Barring the anchor ends the claim by descent. It does not decide whether
+    // someone born before 1947 was an (m) in their own right — so where that
+    // branch is open, the engine says so instead of reporting a refusal it
+    // cannot support.
+    const barred = withFacts(
       withFacts(gcmsChain, "g0", { declarationOfAlienage: true }),
+      "g1",
+      { livedInCanadaOrNewfoundland: true },
     );
-    expect(classifyChain(answered).statuses.map((s) => s.outcome)).toEqual(
-      Array(5).fill("fails"),
+    const g1 = classifyChain(barred).statuses[1];
+    expect(g1.outcome).toBe("undetermined");
+    expect(g1.missing.map((m) => m.factId)).toContain("britishSubjectOnPivot");
+  });
+
+  it("reports closing off (m) and (n) as an assumption, never silently", () => {
+    const result = classifyChain(gcmsChain);
+    const gate = result.assumptions.find(
+      (a) => a.factId === "livedInCanadaOrNewfoundland" && a.personId === "g1",
     );
+    expect(gate?.statement).toMatch(/closing off paragraphs \(m\) and \(n\)/);
   });
 
   it("shuts off (o) for a person who declared alienage themselves", () => {

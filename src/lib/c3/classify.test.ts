@@ -242,6 +242,7 @@ describe("Newfoundland", () => {
         birthRegion: "outside",
         deathDate: "1990-01-01",
         facts: {
+          livedInCanadaOrNewfoundland: true,
           britishSubjectOnPivot: true,
           ordinarilyResidentOnPivot: true,
           canadianDomicileOnPivot: false,
@@ -317,9 +318,17 @@ describe("undetermined", () => {
   });
 
   it("does not report a fact that could not have changed the answer", () => {
-    // (m) is left open for G1 of the GCMS chain — nobody asked whether they were
-    // a British subject in 1947 — but 3(6.3) would supersede (m) either way.
-    const g1 = classifyChain(gcmsChain).statuses[1];
+    // G1 did live in Canada, so the (m) branch opens and nobody has been asked
+    // whether they were a British subject there in 1947. It stays open — but
+    // 3(6.3) would supersede (m) either way, so it is a footnote, not a gap.
+    const chain = withFacts(gcmsChain, "g1", {
+      livedInCanadaOrNewfoundland: true,
+    });
+    const g1 = classifyChain(chain).statuses[1];
+    expect(g1.paragraph).toBe("o");
+    expect(g1.trace.some((t) => t.provision === "3(1)(m)" && t.kind === "unknown")).toBe(
+      true,
+    );
     expect(g1.outcome).toBe("qualifies");
     expect(g1.missing).toEqual([]);
     expect(
@@ -469,6 +478,117 @@ describe("the advisory layer", () => {
     expect(result.statuses[2].flags.map((f) => f.id)).toContain(
       "first-gen-reading",
     );
+  });
+});
+
+describe("a line that has not reached Canada yet", () => {
+  // The state an interview that walks backwards from the applicant passes
+  // through on every screen but the last. It must not read as a refusal.
+  const noAnchor: Person[] = [
+    { id: "mother", label: "My mother", birthDate: "1955-01-01", birthRegion: "outside" },
+    { id: "me", label: "Me", birthDate: "1980-01-01", birthRegion: "outside" },
+  ];
+
+  it("reports incomplete, not fails", () => {
+    const { headline } = classifyChain(noAnchor);
+    expect(headline.verdict).toBe("incomplete");
+    expect(headline.confidence).toBe("unknown");
+    expect(headline.summary).toMatch(/no ancestor to reason from yet/);
+    expect(headline.summary).toMatch(/Add the earliest ancestor you know of/);
+  });
+
+  it("becomes a real answer as soon as an anchor is added", () => {
+    const withAnchor: Person[] = [
+      {
+        id: "grandmother",
+        label: "My grandmother",
+        birthDate: "1930-01-01",
+        birthRegion: "canada",
+        // Born in Canada before 1947, so the engine still needs to know she
+        // kept British subject status — otherwise she is undetermined, not a (d).
+        facts: { ceasedBritishSubject: false },
+      },
+      ...noAnchor,
+    ];
+    const result = classifyChain(withAnchor);
+    expect(result.headline.verdict).toBe("qualifies");
+    expect(result.statuses.map((s) => s.paragraph)).toEqual(["d", "g", "b"]);
+  });
+
+  it("does not claim incompleteness where an anchor exists and simply failed", () => {
+    // Born in Canada before 1947, kept British subject status, died before the
+    // 1946 Act reached them. There is an anchor; it just leads nowhere.
+    const deadEnd: Person[] = [
+      {
+        id: "g0",
+        birthDate: "1880-01-01",
+        birthRegion: "canada",
+        deathDate: "1930-01-01",
+        facts: { ceasedBritishSubject: false },
+      },
+      { id: "g1", birthDate: "1910-01-01", birthRegion: "outside" },
+    ];
+    expect(classifyChain(deadEnd).headline.verdict).toBe("fails");
+  });
+
+  it("does not claim incompleteness for a chain that is merely undetermined", () => {
+    expect(classifyChain(unaskedAnchorChain).headline.verdict).toBe("undetermined");
+  });
+});
+
+describe("which assumptions actually carry the answer", () => {
+  it("marks a default that changes the answer as decisive", () => {
+    const result = classifyChain(gcmsChain);
+    // Flipping the anchor's declaration of alienage takes the whole line down.
+    const alienage = result.assumptions.find(
+      (a) => a.personId === "g0" && a.factId === "declarationOfAlienage",
+    );
+    expect(alienage?.decisive).toBe(true);
+  });
+
+  it("marks a default that carried nothing as not decisive", () => {
+    const result = classifyChain(gcmsChain);
+    // G0 was born in Canada, so whether they also naturalised there is moot.
+    const naturalised = result.assumptions.find(
+      (a) => a.personId === "g0" && a.factId === "naturalizedInCanada",
+    );
+    expect(naturalised?.decisive).toBe(false);
+  });
+
+  it("leaves most of the forty alone, so the few that matter can be seen", () => {
+    const { assumptions } = classifyChain(gcmsChain);
+    const decisive = assumptions.filter((a) => a.decisive === true);
+    expect(assumptions.length).toBeGreaterThan(20);
+    expect(decisive.length).toBeGreaterThan(0);
+    expect(decisive.length).toBeLessThan(assumptions.length / 2);
+  });
+
+  it("does not assess the aliveness assumption, and says so rather than guessing", () => {
+    const alive = classifyChain(gcmsChain).assumptions.find(
+      (a) => a.factId === null,
+    );
+    expect(alive).toBeDefined();
+    expect(alive?.decisive).toBeUndefined();
+  });
+
+  it("can be switched off, and then reports nothing either way", () => {
+    const result = classifyChain(gcmsChain, { assessAssumptions: false });
+    expect(result.assumptions.every((a) => a.decisive === undefined)).toBe(true);
+  });
+
+  it("agrees with reality: flipping a decisive default really does move the answer", () => {
+    // Guards against the counterfactual pass drifting away from the engine.
+    const result = classifyChain(gcmsChain);
+    for (const a of result.assumptions.filter((x) => x.decisive === true)) {
+      if (a.factId === null) continue;
+      const flipped = withFacts(gcmsChain, a.personId, { [a.factId]: true });
+      const alt = classifyChain(flipped, { assessAssumptions: false });
+      expect(
+        alt.applicant.paragraph !== result.applicant.paragraph ||
+          alt.applicant.outcome !== result.applicant.outcome,
+        `${a.personId}:${a.factId} was marked decisive but changed nothing`,
+      ).toBe(true);
+    }
   });
 });
 
