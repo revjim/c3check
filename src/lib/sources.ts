@@ -107,7 +107,7 @@ export const SOURCES: Source[] = [
       "Hypothesis: IRCC wants to determine how the Citizenship Act applies to each generation — r/CanadianbyDescent",
     citation: "r/CanadianbyDescent · August 2026",
     url: "https://www.reddit.com/r/CanadianbyDescent/comments/1vpg2ax/hypothesis_ircc_wants_to_determine_how_the/",
-    note: "Where the idea for this tool came from. The thread works out — from GCMS notes released to applicants under the Access to Information Act — that IRCC classifies every generation in a line under its own paragraph of section 3, not just the applicant. That is the premise the whole classifier is built on. One chain in the notes, k → o → q → q → g, is also the only end-to-end check against a known-correct classification that exists, and it is what decides paragraph (o) over (q) where the Act itself is silent. Treat it accordingly: it is anonymous forum discussion, valuable as evidence of how particular files were actually decided, and not authority for anything.",
+    note: "Applicants comparing GCMS notes released to them under the Access to Information Act. The thread corroborates the approach this tool already took — that IRCC classifies every generation in a line under its own paragraph of section 3, not only the applicant — and it supplies the one thing corroboration cannot: a real chain, k → o → q → q → g, as an officer actually classified it. That chain is the only end-to-end check against a known-correct classification this project has, and it is what settles paragraph (o) against (q) where the Act itself is silent. Treat it accordingly: anonymous forum discussion, valuable as evidence of how particular files were decided, and not authority for anything.",
   },
 ];
 
