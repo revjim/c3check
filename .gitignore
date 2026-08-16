@@ -42,3 +42,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ---------------------------------------------------------------------------
+# Personal data. This repository is PUBLIC.
+#
+# Genealogy files and the source documents behind this project contain living
+# people's birth dates, birthplaces, and family relationships. None of it
+# belongs here. Test fixtures must be synthetic or drawn from already-public,
+# anonymised material. If you need a real chain to debug against, name the file
+# *.local.ts and it will be ignored.
+# ---------------------------------------------------------------------------
+
+# Genealogy exports — always personal data
+*.ged
+*.gedcom
+*.GED
+
+# Local scratch: reference PDFs, working notes, real-family fixtures
+/reference/
+/private/
+*.local.ts
+*.local.json
