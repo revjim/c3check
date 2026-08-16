@@ -16,10 +16,11 @@ export default function CheckPage() {
           The interview is not built yet
         </h1>
         <p className="mt-3 leading-7 text-muted">
-          The classification engine is being written now. When it lands, this is
-          where the guided interview will run — one question at a time, starting
-          with you and working back a generation at a time until it reaches an
-          ancestor born in Canada.
+          The classification engine underneath is written and tested. What is
+          missing is the interview on top of it — one question at a time,
+          starting with you and working back a generation at a time until it
+          reaches an ancestor born in Canada, asking only the questions that can
+          change the answer.
         </p>
         <p className="mt-4 leading-7 text-muted">
           In the meantime, the{" "}
