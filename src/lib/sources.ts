@@ -6,7 +6,12 @@
  * means the trace cannot cite it — add the source first.
  */
 
-export type SourceKind = "statute" | "bill" | "case" | "guidance";
+export type SourceKind =
+  | "statute"
+  | "bill"
+  | "case"
+  | "guidance"
+  | "commentary";
 
 export type Source = {
   id: string;
@@ -86,6 +91,24 @@ export const SOURCES: Source[] = [
     url: "https://cdn.prod.website-files.com/6444f6b1b45963cb621883a9/6a74966e9f0dd74ffd833804_1A-2025-14201_Optimized.pdf",
     note: "Internal IRCC material: the transition guide, officer training notes, and the ORG ID table used to route applications. It also discloses two cohorts whose applications are being set aside pending further instructions. Portions are withheld under section 23.",
   },
+  {
+    id: "marin-atip-analysis",
+    kind: "commentary",
+    title:
+      "Inside IRCC: 5 Things We Learned From Our Access to Information Request on Bill C-3 and Citizenship by Descent",
+    citation: "Cédric Marin, Marin Immigration Law · 13 August 2026",
+    url: "https://www.marinimmigrationlaw.ca/blog/inside-ircc-5-things-we-learned-from-our-access-to-information-request-on-bill-c-3-and-citizenship-by-descent",
+    note: "Marin Immigration Law filed the access-to-information request that produced release 1A-2025-14201 — the document this tool's rules about IRCC's internal procedure are drawn from. Credit for that release belongs to them, not to this project. Their write-up is also the fastest way to understand what is in it: five findings in plain language, including the processing pause and the disclosure that assessments may reach back to the Naturalization Act of 1868.",
+  },
+  {
+    id: "canadianbydescent-gcms-thread",
+    kind: "commentary",
+    title:
+      "Hypothesis: IRCC wants to determine how the Citizenship Act applies to each generation — r/CanadianbyDescent",
+    citation: "r/CanadianbyDescent · August 2026",
+    url: "https://www.reddit.com/r/CanadianbyDescent/comments/1vpg2ax/hypothesis_ircc_wants_to_determine_how_the/",
+    note: "Where the idea for this tool came from. The thread works out — from GCMS notes released to applicants under the Access to Information Act — that IRCC classifies every generation in a line under its own paragraph of section 3, not just the applicant. That is the premise the whole classifier is built on. One chain in the notes, k → o → q → q → g, is also the only end-to-end check against a known-correct classification that exists, and it is what decides paragraph (o) over (q) where the Act itself is silent. Treat it accordingly: it is anonymous forum discussion, valuable as evidence of how particular files were actually decided, and not authority for anything.",
+  },
 ];
 
 export const SOURCES_BY_KIND: { kind: SourceKind; label: string }[] = [
@@ -93,4 +116,5 @@ export const SOURCES_BY_KIND: { kind: SourceKind; label: string }[] = [
   { kind: "bill", label: "Amending Acts" },
   { kind: "case", label: "Case law" },
   { kind: "guidance", label: "IRCC guidance" },
+  { kind: "commentary", label: "Commentary and community" },
 ];

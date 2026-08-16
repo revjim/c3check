@@ -1,0 +1,70 @@
+Third-party material quoted in this repository
+==============================================
+
+Neither LICENSE nor LICENSE-docs can grant rights in material that is not ours
+to license. This file records what is quoted here, and on what basis.
+
+
+Canadian federal legislation
+----------------------------
+
+The repository quotes and paraphrases the Citizenship Act, R.S.C. 1985, c. C-29,
+as amended — most extensively in src/lib/c3/rules.ts, src/lib/c3/bars.ts,
+src/lib/c3/deeming.ts and src/lib/c3/fgl.ts — along with the Canadian
+Citizenship Act, S.C. 1946, c. 15 and the amending Acts S.C. 2008, c. 14
+(Bill C-37), S.C. 2014, c. 22 (Bill C-24) and S.C. 2025, c. 5 (Bill C-3).
+
+Federal statutes are subject to Crown copyright. They may be reproduced without
+permission under the Reproduction of Federal Law Order, SOR/97-318, which
+permits reproduction of enactments and of decisions of federally constituted
+courts and tribunals
+
+    provided due diligence is exercised in ensuring the accuracy of the
+    materials reproduced and the reproduction is not represented as an official
+    version.
+
+Both conditions are taken seriously here. The rules were encoded against the
+consolidated text of section 3 as last amended 15 December 2025, read directly
+rather than from memory. Nothing in this repository or on the site is an official
+version of any enactment; the /sources page links to the authoritative text at
+laws-lois.justice.gc.ca, and every rule trace cites the provision it applies so
+that a reader can check it against the real thing.
+
+
+ATIP release 1A-2025-14201
+--------------------------
+
+Short passages of this 157-page release are quoted in code comments and in the
+advisory text — the internal guidance on paragraph 3(1)(q) at pp. 134-136, the
+two excluded cohorts at p. 155, and the processing-pause bulletin of
+11 December 2025 at p. 157. The ORG ID table at pp. 63-65 is transcribed in
+src/lib/c3/orgIds.ts.
+
+Records released under the Access to Information Act remain subject to Crown
+copyright. Disclosure does not place them in the public domain. The quotations
+here are short excerpts, attributed, used for research and criticism, and relied
+on as fair dealing under section 29 of the Copyright Act. They are reproduced
+because a tool that encodes a rule drawn from a partly-redacted government
+document owes its users the passage it relied on, including the fact that the
+governing guidance on one point is withheld under section 23.
+
+The release itself is not committed to this repository. The /sources page links
+to a published copy.
+
+The access-to-information request that produced this release was filed by Marin
+Immigration Law, not by this project. See the /sources page.
+
+
+Community material
+------------------
+
+The GCMS case notes discussed in the r/CanadianbyDescent thread linked from
+/sources are quoted only in summary — a paragraph cascade, with no personal
+details. They are treated as evidence of how one file was actually decided, and
+they are what settles one documented decision in src/lib/c3/precedence.ts. The
+thread is linked rather than reproduced.
+
+No personal or family data from any source appears in this repository. The test
+fixtures in src/lib/c3/fixtures.ts are synthetic: they reproduce the shape of a
+chain and the paragraphs it should produce, never a real person's dates. See the
+personal-data section of .gitignore.

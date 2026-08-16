@@ -1,0 +1,35 @@
+c3check
+Copyright 2026 revjim
+
+This product includes software developed for c3check (https://c3check.com),
+licensed under the Apache License, Version 2.0.
+
+--------------------------------------------------------------------------------
+
+c3check is a free educational tool. It is NOT legal advice and NOT immigration
+advice. It is not affiliated with, endorsed by, or connected to Immigration,
+Refugees and Citizenship Canada or the Government of Canada, and it was not
+written by a lawyer.
+
+Its classification rules are encoded against the Citizenship Act, R.S.C. 1985,
+c. C-29 as amended by S.C. 2025, c. 5, against published IRCC guidance, and
+against an access-to-information release in which material passages are withheld
+under section 23. On some points the government's own documents contradict each
+other. Where a reading is contested, c3check is built to say so on the results
+rather than resolve it silently.
+
+If you distribute a modified version, Apache License section 4(b) requires you
+to carry prominent notices stating that you changed the files. Please honour
+that here in particular: a fork that alters an encoded statutory reading, or
+that removes the uncertainty flags, the stated assumptions, or the
+"not legal advice" framing, is a materially different tool and should not be
+mistaken for this one. The name "c3check" is not licensed to you — see Apache
+License section 6.
+
+Documentation and other prose in this repository are licensed separately; see
+LICENSE-docs. Third-party material quoted in this repository, including the text
+of Canadian federal legislation and passages of the ATIP release, is not covered
+by either licence; see COPYRIGHT.
+
+Results the tool produces about a user's own family line belong to that user.
+No attribution is required and no licence conditions attach to them.
