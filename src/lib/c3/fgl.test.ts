@@ -71,7 +71,7 @@ describe("the 1,095-day test", () => {
   });
 });
 
-describe("3(5) — Crown service", () => {
+describe("3(5): Crown service", () => {
   it("removes the requirement rather than satisfying it", () => {
     // No day count is supplied at all, and none is needed.
     const status = applicant({ crownServiceParent: true });

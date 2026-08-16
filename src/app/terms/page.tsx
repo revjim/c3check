@@ -51,7 +51,7 @@ export default function TermsPage() {
           <strong className="font-medium">
             material passages are withheld
           </strong>
-          . On some points the government&rsquo;s own documents contradict each
+          . On some points the government&apos;s own documents contradict each
           other, and IRCC has paused processing on certain categories of claim
           while it works out how to handle them.
         </p>
@@ -71,15 +71,15 @@ export default function TermsPage() {
           your individual circumstances precisely because it is not qualified to.
         </p>
         <p>
-          Before you file anything, spend money, or make a decision that matters
-          — moving, renouncing another citizenship, planning where a child is
-          born — talk to someone licensed.
+          Before you file anything, spend money, or make a decision that
+          matters (moving, renouncing another citizenship, planning where a
+          child is born), talk to someone licensed.
         </p>
       </Section>
 
       <Section title="No warranty, and limits on liability">
         <p>
-          This site is provided &ldquo;as is&rdquo;, without warranty of any
+          This site is provided &quot;as is&quot;, without warranty of any
           kind, express or implied, including as to accuracy, completeness, or
           fitness for any purpose. It may be unavailable, out of date, or
           incorrect at any time.
@@ -87,7 +87,7 @@ export default function TermsPage() {
         <p>
           To the fullest extent permitted by law, the author is not liable for
           any loss or damage arising from your use of this site or reliance on
-          anything it produces — including missed deadlines, refused
+          anything it produces, including missed deadlines, refused
           applications, or costs incurred. If you are not willing to accept
           that, please do not use it.
         </p>
@@ -95,7 +95,7 @@ export default function TermsPage() {
 
       <Section title="Your responsibilities">
         <p>
-          Only enter information about other people — including relatives — that
+          Only enter information about other people, including relatives, that
           you have a legitimate reason to hold. Everything you enter stays in
           your own browser, as described in the{" "}
           <Link href="/privacy" className="text-brand underline underline-offset-4">
@@ -125,7 +125,7 @@ export default function TermsPage() {
             GitHub issues
           </a>
           . If you believe a rule is encoded incorrectly, please say which
-          paragraph and cite a source — corrections of that kind are genuinely
+          paragraph and cite a source, corrections of that kind are genuinely
           welcome.
         </p>
       </Section>

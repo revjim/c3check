@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       <Section title="Why it works this way">
         <p>
           A tool like this necessarily handles information about living people
-          who have not agreed to anything — your parents, grandparents, your
+          who have not agreed to anything: your parents, grandparents, your
           children. The cleanest way to protect that is not to collect it. So
           the classifier runs entirely as code in your browser, and there is no
           server endpoint that family data is sent to.
@@ -37,16 +37,16 @@ export default function PrivacyPage() {
       <Section title="What is stored on your device">
         <p>
           So that a long interview survives a refresh, c3check saves your
-          progress in your browser&rsquo;s <code className="font-mono text-sm">localStorage</code>{" "}
+          progress in your browser&apos;s <code className="font-mono text-sm">localStorage</code>{" "}
           under two keys:
         </p>
         <ul className="ml-5 list-disc space-y-1">
           <li>
-            <code className="font-mono text-sm">{DRAFT_KEY}</code> — the family
+            <code className="font-mono text-sm">{DRAFT_KEY}</code>, the family
             line you have entered and the answers you have given.
           </li>
           <li>
-            <code className="font-mono text-sm">{CONSENT_KEY}</code> — a record
+            <code className="font-mono text-sm">{CONSENT_KEY}</code>, a record
             that you accepted the terms, so you are not asked repeatedly.
           </li>
         </ul>
@@ -94,8 +94,8 @@ export default function PrivacyPage() {
       <Section title="Hosting">
         <p>
           The site is hosted by Vercel. Like any web host, its infrastructure
-          logs the requests it serves — including IP addresses and browser user
-          agents — for delivery, security, and abuse prevention. That is
+          logs the requests it serves, including IP addresses and browser user
+          agents, for delivery, security, and abuse prevention. That is
           ordinary web-server logging and applies to the page itself, not to
           anything you type into it.
         </p>
@@ -112,7 +112,7 @@ export default function PrivacyPage() {
       <Section title="Children">
         <p>
           A citizenship line often includes children, and you may enter a
-          child&rsquo;s birth details as part of your own family line. That
+          child&apos;s birth details as part of your own family line. That
           information is treated exactly like everything else here: it stays on
           your device. The site is not directed at children as users.
         </p>

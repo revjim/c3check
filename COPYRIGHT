@@ -9,8 +9,9 @@ Canadian federal legislation
 ----------------------------
 
 The repository quotes and paraphrases the Citizenship Act, R.S.C. 1985, c. C-29,
-as amended — most extensively in src/lib/c3/rules.ts, src/lib/c3/bars.ts,
-src/lib/c3/deeming.ts and src/lib/c3/fgl.ts — along with the Canadian
+as amended. It does so most extensively in src/lib/c3/rules.ts,
+src/lib/c3/bars.ts, src/lib/c3/deeming.ts and src/lib/c3/fgl.ts, along with the
+Canadian
 Citizenship Act, S.C. 1946, c. 15 and the amending Acts S.C. 2008, c. 14
 (Bill C-37), S.C. 2014, c. 22 (Bill C-24) and S.C. 2025, c. 5 (Bill C-3).
 
@@ -35,7 +36,7 @@ ATIP release 1A-2025-14201
 --------------------------
 
 Short passages of this 157-page release are quoted in code comments and in the
-advisory text — the internal guidance on paragraph 3(1)(q) at pp. 134-136, the
+advisory text: the internal guidance on paragraph 3(1)(q) at pp. 134-136, the
 two excluded cohorts at p. 155, and the processing-pause bulletin of
 11 December 2025 at p. 157. The ORG ID table at pp. 63-65 is transcribed in
 src/lib/c3/orgIds.ts.
@@ -59,7 +60,7 @@ Community material
 ------------------
 
 The GCMS case notes discussed in the r/CanadianbyDescent thread linked from
-/sources are quoted only in summary — a paragraph cascade, with no personal
+/sources are quoted only in summary: a paragraph cascade, with no personal
 details. They are treated as evidence of how one file was actually decided, and
 they are what settles one documented decision in src/lib/c3/precedence.ts. The
 thread is linked rather than reproduced.

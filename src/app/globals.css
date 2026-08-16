@@ -7,7 +7,7 @@
   --subtle: #71717a;
   --border: #e4e4e7;
   --surface: #fafafa;
-  /* Deliberately not flag red — see src/components/Logo.tsx. */
+  /* Deliberately not flag red; see src/components/Logo.tsx. */
   --brand: #c2410c;
 }
 

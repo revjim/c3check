@@ -1,7 +1,7 @@
 /**
  * The fold: anchor to applicant, one generation at a time.
  *
- * Each person's status is a function of four things — their birth date, their
+ * Each person's status is a function of four things: their birth date, their
  * birthplace class resolved against that date, and the previous generation's
  * paragraph and effective date. That is what makes a line computable in a single
  * forward pass, and it is why the engine models a line and not a tree.
@@ -110,7 +110,7 @@ function runChain(people: Person[]): ChainResult {
       lacksAnchor(people, statuses),
     ),
     advisories,
-    // Keyed on the statement rather than the fact where there is no fact — the
+    // Keyed on the statement rather than the fact where there is no fact. The
     // aliveness assumption is made per date, and collapsing two dates into one
     // would hide half of what was assumed.
     assumptions: dedupe(
@@ -300,7 +300,7 @@ function classifyPerson(
 
   // Bars are applied to everything that is still in play, not only to what
   // matched. A paragraph left open for want of a fact is worth nothing if a bar
-  // would have shut it off anyway — and if that were not accounted for, barring
+  // would have shut it off anyway, and if that were not accounted for, barring
   // the winner would resurrect it and make the person undetermined.
   const bars = applyBars(ctx, [
     ...matched,
@@ -348,7 +348,7 @@ function classifyPerson(
       kind: "note",
       because: `paragraph ${immaterial
         .map((u) => `(${u.paragraph})`)
-        .join(", ")} could not be decided on the facts given, but could not have changed the result — paragraph (${winnerSoFar}) takes precedence over ${
+        .join(", ")} could not be decided on the facts given, but could not have changed the result, paragraph (${winnerSoFar}) takes precedence over ${
         immaterial.length === 1 ? "it" : "them"
       } in any event`,
     });
@@ -367,7 +367,7 @@ function classifyPerson(
   }));
 
   // A parent-dependent rule left open by an unresolved ancestor names no fact of
-  // its own — the gap is upstream — but it still makes this person undetermined.
+  // its own (the gap is upstream), but it still makes this person undetermined.
   const undetermined = material.length > 0 || missing.length > 0;
 
   // --- Assemble ------------------------------------------------------------
@@ -389,7 +389,7 @@ function classifyPerson(
   }
 
   if (resolved.winner === null) {
-    // No paragraph. The person may still be a citizen — someone who simply
+    // No paragraph. The person may still be a citizen, someone who simply
     // became one on 1 January 1947 under the 1946 Act and died before 1977 is,
     // and is a valid (q) parent, but no paragraph of s. 3(1) as it now reads
     // describes them.
@@ -398,7 +398,7 @@ function classifyPerson(
         provision: "Canadian Citizenship Act, S.C. 1946, c. 15",
         sourceId: "citizenship-act",
         kind: "note",
-        because: `${formerAct.basis}. No paragraph of section 3(1) as it now reads describes them, because none needs to — they were already a citizen. Paragraph 3(1)(q) refers to exactly this person as a parent.`,
+        because: `${formerAct.basis}. No paragraph of section 3(1) as it now reads describes them, because none needs to; they were already a citizen. Paragraph 3(1)(q) refers to exactly this person as a parent.`,
       });
       return {
         ...base,
@@ -434,7 +434,7 @@ function classifyPerson(
   const effectiveDate =
     payload.effectiveOverride ?? effectiveDateFor(winner, person.birthDate);
   // Only cite 3(7) where 3(7) did the work. An ordinary (d) was simply already a
-  // citizen, and 3(7)(b) — which the deeming map records against (d) — reaches
+  // citizen, and 3(7)(b), which the deeming map records against (d), reaches
   // only a (d) who lost citizenship by grant and resumed it. Citing it here
   // would put a provision in the trace that does not apply to this person.
   const deemingProvision =
@@ -447,7 +447,7 @@ function classifyPerson(
       sourceId: "citizenship-act",
       kind: "note",
       because: `citizenship takes effect from ${effectiveDate}${
-        effectiveDate === person.birthDate ? " — the moment of birth" : ""
+        effectiveDate === person.birthDate ? ", the moment of birth" : ""
       }`,
     });
   }
@@ -470,7 +470,7 @@ function classifyPerson(
     remediedBy,
     // Deliberately not widened to "anyone deemed a citizen as of 1947-01-01".
     // Paragraph (q)'s parent test is literal, and the reading that extends it to
-    // a deemed parent is IRCC guidance rather than statute — the (q) rule keeps
+    // a deemed parent is IRCC guidance rather than statute, the (q) rule keeps
     // the two apart so the trace can say which one it used.
     became1947ActCitizen,
     became1949ActCitizen,
@@ -507,7 +507,7 @@ function detectStop(
       id: "adoption",
       personId: person.id,
       title: "Adoption in the line",
-      detail: `${label} was adopted. Citizenship for an adopted person runs through a grant under section 5.1 and takes effect from the date of the grant, not retroactively — a different mechanism from the descent this tool follows, and one that needs a different application form. An adoptee part-way up a line also breaks the descent logic entirely, so the chain stops here.`,
+      detail: `${label} was adopted. Citizenship for an adopted person runs through a grant under section 5.1 and takes effect from the date of the grant, not retroactively, a different mechanism from the descent this tool follows, and one that needs a different application form. An adoptee part-way up a line also breaks the descent logic entirely, so the chain stops here.`,
       provision: "3(1)(c.1), s. 5.1",
       sourceId: "citizenship-act",
     };
@@ -518,7 +518,7 @@ function detectStop(
       id: "loss-and-restoration",
       personId: person.id,
       title: "Citizenship was lost and later restored",
-      detail: `${label} lost Canadian citizenship and later had it back — under the former section 8 retention rule, a resumption, or a later grant. That is paragraph (f), (h), (i) or (j) territory. Those paragraphs run on their own timeline, with effective dates keyed to when the person ceased to be a citizen rather than to their birth, and this tool stops rather than guess at them. The interview asks about it because subsections 3(2.1) to 3(2.5) turn on it.`,
+      detail: `${label} lost Canadian citizenship and later had it back, whether under the former section 8 retention rule, a resumption, or a later grant. That is paragraph (f), (h), (i) or (j) territory. Those paragraphs run on their own timeline, with effective dates keyed to when the person ceased to be a citizen rather than to their birth, and this tool stops rather than guess at them. The interview asks about it because subsections 3(2.1) to 3(2.5) turn on it.`,
       provision: "3(1)(f), (h), (i), (j)",
       sourceId: "citizenship-act",
     };
@@ -529,7 +529,7 @@ function detectStop(
       id: "citizen-by-grant",
       personId: person.id,
       title: "Already a citizen by grant",
-      detail: `${label} holds Canadian citizenship by grant. A grant takes effect from the date it is made, going forward. This tool answers a different question — which paragraph already makes someone a citizen, retroactively, by operation of law — and has nothing to add for someone who is a citizen under paragraph 3(1)(c) or (c.1) already.`,
+      detail: `${label} holds Canadian citizenship by grant. A grant takes effect from the date it is made, going forward. This tool answers a different question, which paragraph already makes someone a citizen, retroactively, by operation of law, and has nothing to add for someone who is a citizen under paragraph 3(1)(c) or (c.1) already.`,
       provision: "3(1)(c), 3(1)(c.1)",
       sourceId: "citizenship-act",
     };
@@ -543,7 +543,7 @@ function detectStop(
 // ---------------------------------------------------------------------------
 
 const WHY_ALIVE =
-  "Several paragraphs describe a person's status *on* a particular date — 1 January 1947 or 1 April 1949 — which someone who had already died cannot have had.";
+  "Several paragraphs describe a person's status *on* a particular date, 1 January 1947 or 1 April 1949, which someone who had already died cannot have had.";
 
 function formerActCitizenship(
   person: Person,
@@ -660,8 +660,8 @@ function formerActCitizenship(
  *
  * The rule is: the amendment that introduced the paragraph, unless the paragraph
  * only becomes available to this person because C-3 removed the first-generation
- * limit — a (b) or (g) in the second generation abroad, or a (q)/(r) whose own
- * parent is a (q)/(r) — in which case it is C-3.
+ * limit (a (b) or (g) in the second generation abroad, or a (q)/(r) whose own
+ * parent is a (q)/(r)), in which case it is C-3.
  */
 function amendmentFor(
   paragraph: Paragraph,
@@ -702,9 +702,9 @@ function amendmentFor(
  * The line as entered has no anchor: nobody in it was born in Canada or in
  * Newfoundland before the union, and nobody naturalised there.
  *
- * Every paragraph that does not depend on a citizen parent — (a), (d), (k) and
- * (l) — requires birth or naturalisation in one of those places, and (m) and (n)
- * require having been there on the pivot date. So a chain of people all born
+ * Paragraphs (a), (d), (k) and (l), the ones that do not depend on a citizen
+ * parent, all require birth or naturalisation in one of those places, and (m)
+ * and (n) require having been there on the pivot date. So a chain of people all born
  * abroad has nothing to reason from, and reporting that as "not a citizen" is
  * wrong twice over: it answers a question nobody asked, and it does so in the
  * one direction that makes someone stop looking.
@@ -762,7 +762,7 @@ function headlineFor(
         ...base,
         verdict: "fails",
         confidence: flagged ? "flagged" : "clear",
-        summary: `On the facts given, no paragraph of section 3(1) describes ${applicant.label}. That is a conclusion about this line as entered, not about every possible route — a second parent, or a different anchor, may reach a different answer.`,
+        summary: `On the facts given, no paragraph of section 3(1) describes ${applicant.label}. That is a conclusion about this line as entered, not about every possible route, a second parent, or a different anchor, may reach a different answer.`,
       };
     case "undetermined":
       return {
@@ -816,7 +816,7 @@ function markDecisiveAssumptions(people: Person[], result: ChainResult): void {
 
   for (const status of result.statuses) {
     for (const assumption of status.assumptions) {
-      if (assumption.factId === null) continue; // aliveness — no single inverse
+      if (assumption.factId === null) continue; // aliveness; no single inverse
       const inverted = invertFact(people, assumption.personId, assumption.factId);
       if (inverted === null) continue;
       const alternative = runChain(inverted).applicant;
@@ -830,7 +830,7 @@ function markDecisiveAssumptions(people: Person[], result: ChainResult): void {
 
 /**
  * A copy of the chain with one boolean fact set to the opposite of the default
- * that was applied. Returns null for anything not a boolean — a numeric fact has
+ * that was applied. Returns null for anything not a boolean, a numeric fact has
  * no inverse, and in any case only facts with defaults become assumptions.
  */
 function invertFact(

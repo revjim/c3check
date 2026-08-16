@@ -21,7 +21,7 @@ const outcomes = (people: Person[]): string[] =>
 describe("the published GCMS chain", () => {
   // The only end-to-end check against a known-correct IRCC classification that
   // exists. If this breaks, the engine is wrong, not the test.
-  it("reproduces k → o → q → q → g", () => {
+  it("reproduces k -> o -> q -> q -> g", () => {
     expect(paragraphs(gcmsChain)).toEqual(["k", "o", "q", "q", "g"]);
   });
 
@@ -58,10 +58,10 @@ describe("the published GCMS chain", () => {
     expect(g1.paragraph).toBe("o");
     expect(g1.alternatives).toContain("q");
     const tieBreak = g1.trace.find((t) => t.provision === "tie-break");
-    expect(tieBreak?.because).toMatch(/k → o → q → q/);
+    expect(tieBreak?.because).toMatch(/k -> o -> q -> q/);
   });
 
-  it("does not make the 1942-style birth a (g) — the parent was not yet a citizen", () => {
+  it("does not make the 1942-style birth a (g): the parent was not yet a citizen", () => {
     const g3 = classifyChain(gcmsChain).statuses[3];
     expect(g3.paragraph).toBe("q");
     const notG = g3.trace.find(
@@ -125,7 +125,7 @@ describe("born in Canada under the current Act", () => {
     const [g0] = classifyChain(chain).statuses;
     expect(g0.paragraph).toBe("a");
     expect(g0.effectiveDate).toBe("1985-06-01");
-    // 3(7) has no rule for (a) — the paragraph operates at the moment of birth.
+    // 3(7) has no rule for (a), the paragraph operates at the moment of birth.
     expect(g0.deemingProvision).toBeNull();
   });
 
@@ -150,7 +150,7 @@ describe("born in Canada under the current Act", () => {
 describe("a citizen the current Act does not describe", () => {
   // Someone born in Canada before 1947 who kept British subject status became a
   // citizen on 1 January 1947 under the 1946 Act. If they died before 1977 they
-  // are not a (d), and no other paragraph reaches them — but they were a
+  // are not a (d), and no other paragraph reaches them, but they were a
   // citizen, and paragraph (q) names exactly this person as a parent.
   const chain: Person[] = [
     {
@@ -319,7 +319,7 @@ describe("undetermined", () => {
 
   it("does not report a fact that could not have changed the answer", () => {
     // G1 did live in Canada, so the (m) branch opens and nobody has been asked
-    // whether they were a British subject there in 1947. It stays open — but
+    // whether they were a British subject there in 1947. It stays open, but
     // 3(6.3) would supersede (m) either way, so it is a footnote, not a gap.
     const chain = withFacts(gcmsChain, "g1", {
       livedInCanadaOrNewfoundland: true,
@@ -404,7 +404,7 @@ describe("detect and stop", () => {
     expect(result.headline.verdict).toBe("stopped");
   });
 
-  it("does not stop for a grant that was renounced — the bars deal with that", () => {
+  it("does not stop for a grant that was renounced, the bars deal with that", () => {
     const result = classifyChain(
       withFacts(gcmsChain, "g4", {
         citizenshipByGrant: true,
@@ -505,7 +505,7 @@ describe("a line that has not reached Canada yet", () => {
         birthDate: "1930-01-01",
         birthRegion: "canada",
         // Born in Canada before 1947, so the engine still needs to know she
-        // kept British subject status — otherwise she is undetermined, not a (d).
+        // kept British subject status, otherwise she is undetermined, not a (d).
         facts: { ceasedBritishSubject: false },
       },
       ...noAnchor,

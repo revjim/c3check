@@ -17,7 +17,7 @@ export default function CheckPage() {
         </h1>
         <p className="mt-3 leading-7 text-muted">
           The classification engine underneath is written and tested. What is
-          missing is the interview on top of it — one question at a time,
+          missing is the interview on top of it; one question at a time,
           starting with you and working back a generation at a time until it
           reaches an ancestor born in Canada, asking only the questions that can
           change the answer.

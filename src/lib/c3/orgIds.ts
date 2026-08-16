@@ -1,5 +1,5 @@
 /**
- * IRCC's ORG ID table, ATIP release 1A-2025-14201 at pp. 63–65.
+ * IRCC's ORG ID table, ATIP release 1A-2025-14201 at pp. 63-65.
  *
  * ORG IDs route a proof application into a processing category. They are a
  * stop-gap: "ORG IDs are being used to track C-3 related proof applications
@@ -12,7 +12,7 @@
  * were checked before this table was typed.
  *
  * The table covers only the paragraphs that generate C-3 proof applications.
- * There is no ORG ID for (k), (l), (m), (n), (o) or (p) — an ancestor classified
+ * There is no ORG ID for (k), (l), (m), (n), (o) or (p), an ancestor classified
  * under those is not themselves the applicant. IRCC's own instruction for a gap
  * is "Contact Program Guidance if an applicant is a citizen as a result of
  * changes to the Citizenship Act enacted through Bill C-3 but there is not an

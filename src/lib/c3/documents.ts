@@ -2,7 +2,7 @@
  * What to go and find.
  *
  * Every fact in the catalogue names a document set. When the engine reports a
- * person as `undetermined`, it names the fact *and* these documents — "we cannot
+ * person as `undetermined`, it names the fact *and* these documents; "we cannot
  * answer this" is only half an answer, and the useful half is the other one.
  *
  * These are suggestions for a self-represented applicant, not a checklist IRCC
@@ -30,7 +30,7 @@ export const DOCUMENTS: Record<DocumentKey, string[]> = {
   "loss-of-british-subject-status": [
     "Foreign naturalisation certificate or petition, with its date",
     "A negative search letter from the national archive and the county or district court where they lived, if they did not naturalise",
-    "Marriage certificate, for a woman who married before 1947 — with evidence of the husband's nationality at the date of the marriage",
+    "Marriage certificate, for a woman who married before 1947, with evidence of the husband's nationality at the date of the marriage",
     "Census returns and passenger lists showing declared nationality over time",
   ],
   "residence-on-pivot-date": [
@@ -44,18 +44,18 @@ export const DOCUMENTS: Record<DocumentKey, string[]> = {
   ],
   "canadian-domicile": [
     "Landing record showing the date of admission for permanent residence",
-    "Evidence of five continuous years of residence after landing — directories, tax records, employment records",
+    "Evidence of five continuous years of residence after landing: directories, tax records, employment records",
   ],
   "declaration-of-alienage": [
     "A search of the Canadian citizenship and naturalisation records for a declaration of alienage",
-    "Family papers — declarations were uncommon and are usually remembered",
+    "Family papers, declarations were uncommon and are usually remembered",
   ],
   "canadian-citizenship-record": [
     "Search of Citizenship Records (form CIT 0058) from IRCC",
     "Any Canadian citizenship certificate, card or naturalisation record held by the family",
   ],
   renunciation: [
-    "Search of Citizenship Records (CIT 0058) — a renunciation is recorded against the file",
+    "Search of Citizenship Records (CIT 0058), a renunciation is recorded against the file",
     "The renunciation certificate itself, if the family holds it",
   ],
   "loss-and-restoration": [
@@ -72,7 +72,7 @@ export const DOCUMENTS: Record<DocumentKey, string[]> = {
   ],
   "crown-service": [
     "Service record or letter of employment showing the posting was outside Canada with the Canadian Armed Forces, the federal public administration or a provincial public service",
-    "Evidence the person was not locally engaged — the exception does not reach locally engaged staff",
+    "Evidence the person was not locally engaged; the exception does not reach locally engaged staff",
   ],
   "physical-presence": [
     "Form CIT 0555, the parental physical presence declaration",
@@ -82,7 +82,7 @@ export const DOCUMENTS: Record<DocumentKey, string[]> = {
     "The citizenship certificate itself, or a Search of Citizenship Records (CIT 0058) confirming whether one was ever issued",
   ],
   "diplomatic-status": [
-    "Evidence of the parents' status in Canada at the birth — accreditation records, or a permanent resident landing record showing they were not accredited",
+    "Evidence of the parents' status in Canada at the birth: accreditation records, or a permanent resident landing record showing they were not accredited",
   ],
   "date-of-death": [
     "Death certificate, or a burial or probate record",

@@ -96,7 +96,7 @@ describe("citations in actual output", () => {
   });
 
   it("attributes the (o)-over-(q) tie-break to the thread it came from", () => {
-    // Empirical, not statutory — so it must not appear to rest on the statute.
+    // Empirical, not statutory, so it must not appear to rest on the statute.
     const g1 = classifyChain(gcmsChain).statuses[1];
     const tieBreak = g1.trace.find((t) => t.provision === "tie-break");
     expect(tieBreak?.sourceId).toBe("canadianbydescent-gcms-thread");
@@ -139,7 +139,7 @@ describe("the 3(7) deeming map", () => {
   });
 
   it("never cites a 3(7)(i), because there is no longer one", () => {
-    // 3(7) runs (a) to (h), then (j) to (m) — paragraph (i) was repealed by
+    // 3(7) runs (a) to (h), then (j) to (m), paragraph (i) was repealed by
     // S.C. 2025, c. 5, s. 1. A citation to 3(7)(i) is always a bug.
     const cited = Object.values(DEEMING)
       .map((d) => d.provision)
@@ -253,7 +253,7 @@ describe("precedence", () => {
 
   it("applies 3(6.4) so that (b) yields to (f)", () => {
     // Moot while (f) is detect-and-stop, but the ATIP contradicts itself on this
-    // point — p. 22 says (b), p. 33 says (f) — so the statute is pinned here.
+    // point: p. 22 says (b), p. 33 says (f), so the statute is pinned here.
     const result = resolvePrecedence(["b", "f"]);
     expect(result.winner).toBe("f");
     expect(result.traces.some((t) => t.provision === "3(6.4)")).toBe(true);

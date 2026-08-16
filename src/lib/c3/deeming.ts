@@ -1,14 +1,14 @@
 /**
- * Subsection 3(7) — when citizenship takes effect.
+ * Subsection 3(7), when citizenship takes effect.
  *
  * This is the provision that makes the whole chain computable. A paragraph says
  * *whether* someone is a citizen; 3(7) says *from when*. The child's paragraph
  * then depends on the parent's effective date, not on the parent's paragraph
- * alone — which is why a person born abroad in 1942 to a parent deemed a citizen
+ * alone, which is why a person born abroad in 1942 to a parent deemed a citizen
  * as of 1 January 1947 is not a (g) but a (q): the parent was not yet a citizen
  * at the time of the birth, seven months later though the deeming date is.
  *
- * The map below is complete. Note that **3(7) has no paragraph (i)** — it runs
+ * The map below is complete. Note that **3(7) has no paragraph (i)**; it runs
  * (a) to (h), then (j) to (m). Paragraph (i) was repealed by S.C. 2025, c. 5,
  * s. 1. That is a drafting artefact, not a gap in this table.
  */
@@ -25,7 +25,7 @@ export type EffectiveRule =
   | { kind: "fixed"; date: IsoDate }
   /**
    * From the moment the person ceased to be a citizen. v1 detects and stops on
-   * every paragraph that uses this, so the date is never computed — the entry
+   * every paragraph that uses this, so the date is never computed, the entry
    * exists so the map is complete and the omission is deliberate rather than
    * forgotten.
    */
@@ -42,7 +42,7 @@ export const DEEMING: Record<Paragraph, DeemingEntry> = {
   a: {
     provision: null,
     effective: { kind: "birth" },
-    note: "Citizenship by birth in Canada needs no deeming rule — paragraph (a) operates at the moment of birth.",
+    note: "Citizenship by birth in Canada needs no deeming rule, paragraph (a) operates at the moment of birth.",
   },
   b: { provision: "3(7)(h)", effective: { kind: "birth" } },
   c: { provision: "3(7)(a)", effective: { kind: "ceased-to-be-a-citizen" } },

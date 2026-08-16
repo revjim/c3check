@@ -7,7 +7,7 @@
  * strings compare correctly with `<`, so the comparators below are exact.
  *
  * Nothing here reads the system clock. The engine is a pure function of the
- * facts it is given — "today" is never one of them.
+ * facts it is given, "today" is never one of them.
  */
 
 import type { BirthRegion, BirthplaceClass } from "./types";
@@ -37,7 +37,7 @@ export const earlier = (a: IsoDate, b: IsoDate): IsoDate => (a <= b ? a : b);
 
 /**
  * The Canadian Citizenship Act, S.C. 1946, c. 15 came into force. Before this
- * day there was no such thing as a Canadian citizen — only British subjects.
+ * day there was no such thing as a Canadian citizen, only British subjects.
  */
 export const ACT_1947: IsoDate = "1947-01-01";
 
@@ -55,10 +55,10 @@ export const NFLD_UNION: IsoDate = "1949-04-01";
  */
 export const ACT_1977: IsoDate = "1977-02-15";
 
-/** Bill C-37 (S.C. 2008, c. 14) came into force — paragraphs (f) through (j). */
+/** Bill C-37 (S.C. 2008, c. 14) came into force, paragraphs (f) through (j). */
 export const AMEND_2009: IsoDate = "2009-04-17";
 
-/** Bill C-24 (S.C. 2014, c. 22) came into force — paragraphs (k) through (r). */
+/** Bill C-24 (S.C. 2014, c. 22) came into force, paragraphs (k) through (r). */
 export const AMEND_2015: IsoDate = "2015-06-11";
 
 /** Bill C-3 (S.C. 2025, c. 5) came into force. "CIF" throughout IRCC's material. */
@@ -66,7 +66,7 @@ export const CIF: IsoDate = "2025-12-15";
 
 /**
  * Days of physical presence in Canada a citizen parent must have accumulated
- * before the birth for 3(3) not to bite — s. 3(3)(a)(ii) and (b)(ii).
+ * before the birth for 3(3) not to bite, s. 3(3)(a)(ii) and (b)(ii).
  */
 export const PRESENCE_DAYS = 1095;
 
@@ -84,7 +84,7 @@ export const PRESENCE_DAYS = 1095;
  *
  * Subsection 3(1.01) points the same way from the other direction: it has to
  * say expressly that "Canada" in (k), (m) and (o) to (r) means Canada as it was
- * immediately before the union — which it would not need to say if Newfoundland
+ * immediately before the union, which it would not need to say if Newfoundland
  * were already excluded everywhere.
  */
 export function resolvePlace(region: BirthRegion, on: IsoDate): BirthplaceClass {

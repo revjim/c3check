@@ -3,7 +3,7 @@ Creative Commons Attribution 4.0 International (CC BY 4.0)
 
 Copyright 2026 revjim
 
-The prose in this repository — as distinct from its source code — is licensed
+The prose in this repository, as distinct from its source code, is licensed
 under the Creative Commons Attribution 4.0 International License.
 
   Human-readable summary:  https://creativecommons.org/licenses/by/4.0/
@@ -38,7 +38,7 @@ What this does not cover
 ------------------------
 
   * Source code, which is under the Apache License, Version 2.0. See LICENSE.
-    Where a file contains both — a rule with an explanatory comment, say — the
+    Where a file contains both (a rule with an explanatory comment, say), the
     code is Apache-2.0 and the prose is CC BY 4.0, and you may rely on whichever
     fits your use.
   * Third-party material quoted in this repository, including the text of
@@ -57,8 +57,8 @@ Something along these lines is plenty:
 
   Adapted from c3check (https://c3check.com), CC BY 4.0.
 
-If you adapt the writing in a way that changes its meaning — particularly if you
-change how a statutory reading is described, or drop a stated uncertainty —
+If you adapt the writing in a way that changes its meaning (particularly if you
+change how a statutory reading is described, or drop a stated uncertainty),
 please say so alongside the credit. The licence requires you to indicate
 modifications; here it matters more than usual, because a confident-sounding
 paraphrase of a genuinely unsettled point is the specific failure this project

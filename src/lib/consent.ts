@@ -45,8 +45,8 @@ export function getSnapshot(): ConsentStatus {
 }
 
 /**
- * Used for SSR and the hydration render. A distinct "loading" state — rather
- * than "needed" — keeps the gate from flashing at people who already accepted.
+ * Used for SSR and the hydration render. A distinct "loading" state, rather
+ * than "needed", keeps the gate from flashing at people who already accepted.
  */
 export function getServerSnapshot(): ConsentStatus {
   return "loading";

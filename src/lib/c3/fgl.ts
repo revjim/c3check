@@ -1,11 +1,11 @@
 /**
- * Subsection 3(3) — the first-generation limit, as Bill C-3 left it.
+ * Subsection 3(3): the first-generation limit, as Bill C-3 left it.
  *
  * C-3 did not abolish the limit. It moved it: 3(3) now applies only "to a person
  * born outside Canada **on or after** the day on which An Act to amend the
  * Citizenship Act (2025) comes into force", and where it applies it can be
  * satisfied by 1,095 days of the parent's physical presence in Canada. Everyone
- * born abroad before 15 December 2025 is out of its reach entirely — which is
+ * born abroad before 15 December 2025 is out of its reach entirely, which is
  * the whole point of the Act.
  *
  * It bites only on paragraph (b). Nothing else in s. 3(1) is subject to it.
@@ -50,7 +50,7 @@ export function applyFirstGenerationLimit(ctx: RuleContext): FglResult {
       provision: "3(3)",
       sourceId: "bill-c-3",
       kind: "note",
-      because: `born before ${CIF}, so the first-generation limit does not apply — subsection 3(3) now reaches only births on or after the day Bill C-3 came into force`,
+      because: `born before ${CIF}, so the first-generation limit does not apply, subsection 3(3) now reaches only births on or after the day Bill C-3 came into force`,
     });
     return { blocked: false, traces, missing };
   }
@@ -61,7 +61,7 @@ export function applyFirstGenerationLimit(ctx: RuleContext): FglResult {
       sourceId: "citizenship-act",
       kind: "note",
       because:
-        "the citizen parent is not one of the kinds subsection 3(3) lists — a parent who was born in Canada, or who is a citizen under paragraph (a), (d) or (k) to (n), does not trigger the limit",
+        "the citizen parent is not one of the kinds subsection 3(3) lists, a parent who was born in Canada, or who is a citizen under paragraph (a), (d) or (k) to (n), does not trigger the limit",
     });
     return { blocked: false, traces, missing };
   }
@@ -110,7 +110,7 @@ export function applyFirstGenerationLimit(ctx: RuleContext): FglResult {
     provision: "3(3)(a)(ii)",
     sourceId: "citizenship-act",
     kind: "barred",
-    because: `paragraph (b) does not apply: the citizen parent was physically present in Canada for ${days} days before the birth, short of the ${PRESENCE_DAYS} days subsection 3(3) requires. This tool follows one line of descent — if the *other* parent is also a citizen and meets the ${PRESENCE_DAYS} days, 3(3)(a)(ii) is not satisfied and the limit does not bite.`,
+    because: `paragraph (b) does not apply: the citizen parent was physically present in Canada for ${days} days before the birth, short of the ${PRESENCE_DAYS} days subsection 3(3) requires. This tool follows one line of descent, if the *other* parent is also a citizen and meets the ${PRESENCE_DAYS} days, 3(3)(a)(ii) is not satisfied and the limit does not bite.`,
   });
   return { blocked: true, traces, missing };
 }
@@ -120,7 +120,7 @@ export function applyFirstGenerationLimit(ctx: RuleContext): FglResult {
  *
  * 3(3)(a)(i)(A) lists the paragraphs; 3(3)(b)(i) covers the equivalent
  * descent provisions of the 1946 and 1952 Acts, which this engine represents as
- * a parent who was a citizen from birth abroad under the former Act — a citizen
+ * a parent who was a citizen from birth abroad under the former Act, a citizen
  * with no paragraph of the current s. 3(1) and an effective date at their birth.
  */
 function triggers(parent: Status | null): boolean {

@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   test: {
-    // The classifier is pure — no DOM needed. UI tests, if added later, should
+    // The classifier is pure; no DOM needed. UI tests, if added later, should
     // opt into jsdom per-file with a `// @vitest-environment jsdom` docblock.
     environment: "node",
     include: ["src/**/*.test.ts"],

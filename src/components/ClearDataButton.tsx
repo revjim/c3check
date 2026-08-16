@@ -5,7 +5,7 @@ import { clearStoredData } from "@/lib/consent";
 
 /**
  * Wipes everything c3check has stored on this device: the saved interview and
- * the record that the terms were accepted. Deliberately clears both — someone
+ * the record that the terms were accepted. Deliberately clears both, someone
  * asking to be forgotten should not be left with a stale consent flag.
  */
 export function ClearDataButton() {

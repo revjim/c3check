@@ -37,7 +37,7 @@ export type Paragraph =
 /**
  * The paragraphs v1 will assign.
  *
- * (c) and (c.1) are grants — a different mechanism with a different form, and
+ * (c) and (c.1) are grants, a different mechanism with a different form, and
  * effective going forward rather than retroactively. (e) is a 1977 transitional
  * entitlement. (f), (h), (i) and (j) are loss-and-restoration; the interview has
  * to ask about those events anyway, because the 3(2.x) bars turn on them, but v1
@@ -71,7 +71,7 @@ export function provisionOf(paragraph: Paragraph): string {
 
 /**
  * Where a birth happened, as the user states it. Resolved to a
- * `BirthplaceClass` against the birth date — see `resolvePlace`.
+ * `BirthplaceClass` against the birth date, see `resolvePlace`.
  */
 export type BirthRegion = "canada" | "newfoundland" | "outside";
 
@@ -86,7 +86,7 @@ export type BirthplaceClass = "canada" | "newfoundland" | "abroad";
  */
 export type PersonFacts = {
   /**
-   * Ceased to be a British subject before the pivot date — by naturalising in
+   * Ceased to be a British subject before the pivot date, by naturalising in
    * another country, or, for a woman before 1947, by marrying a man who was not
    * a British subject. Decides (k) and (l). No default: there is no common
    * answer, and the whole chain usually hangs on it.
@@ -106,7 +106,7 @@ export type PersonFacts = {
   ordinarilyResidentOnPivot?: boolean;
   /**
    * That residence was in Newfoundland and Labrador rather than elsewhere in
-   * Canada — which decides whether the person is on the (n) track at 1 April
+   * Canada, which decides whether the person is on the (n) track at 1 April
    * 1949 or the (m) track at 1 January 1947. Without it, one "ordinarily
    * resident" answer would satisfy both paragraphs at once.
    */
@@ -114,7 +114,7 @@ export type PersonFacts = {
   /** Naturalised in Canada / Newfoundland before the pivot date. (k), (l), (m), (n). */
   naturalizedInCanada?: boolean;
   /**
-   * Had "Canadian domicile" — five years' residence after being landed — on the
+   * Had "Canadian domicile", five years' residence after being landed, on the
    * pivot date. Someone who had it became a citizen under the 1946 Act and so is
    * outside (m) and (n), which catch only those who did not.
    */
@@ -127,10 +127,10 @@ export type PersonFacts = {
   renouncedCitizenship?: boolean;
   /**
    * Lost Canadian citizenship and later resumed it, or failed to retain it under
-   * the former s. 8 retention rule. This is (f)/(h)/(i)/(j) territory — v1 stops.
+   * the former s. 8 retention rule. This is (f)/(h)/(i)/(j) territory; v1 stops.
    */
   lostAndRestored?: boolean;
-  /** Was adopted. Breaks descent logic — v1 stops. */
+  /** Was adopted. Breaks descent logic; v1 stops. */
   adopted?: boolean;
   /**
    * A birth abroad registered with Canadian authorities under the 1946 or 1952
@@ -145,7 +145,7 @@ export type PersonFacts = {
   /**
    * Days the citizen parent was physically present in Canada before this
    * person's birth. Only consulted for births on or after the C-3 coming into
-   * force — s. 3(3)(a)(ii) and (b)(ii).
+   * force, s. 3(3)(a)(ii) and (b)(ii).
    */
   presenceDaysInCanada?: number;
   /** Has been issued a Canadian citizenship certificate. Breaks the processing pause. */
@@ -160,7 +160,7 @@ export type FactId = keyof PersonFacts;
 export type Person = {
   /** Stable within a chain. Used by every trace, flag and assumption. */
   id: string;
-  /** Whatever the user calls them — "Grandmother", "G1". Never leaves the browser. */
+  /** Whatever the user calls them, "Grandmother", "G1". Never leaves the browser. */
   label?: string;
   birthDate: IsoDate;
   birthRegion: BirthRegion;
@@ -197,7 +197,7 @@ export type Amendment = "c-37" | "c-24" | "c-3" | "pre-existing";
 
 /** One line of the reasoning, citing the provision and a source in `SOURCES`. */
 export type RuleTrace = {
-  /** `3(1)(k)`, `3(6.3)`, `3(7)(j)` — whatever this line is about. */
+  /** `3(1)(k)`, `3(6.3)`, `3(7)(j)`, whatever this line is about. */
   provision: string;
   /** An `id` from `src/lib/sources.ts`. */
   sourceId: string;
@@ -215,7 +215,7 @@ export type Assumption = {
   why: string;
   documents: string[];
   /**
-   * Whether flipping this default changes the applicant's answer — found by
+   * Whether flipping this default changes the applicant's answer, found by
    * re-running the chain with it inverted.
    *
    * `true` means this is worth going and establishing; `false` means it was
@@ -293,7 +293,7 @@ export type Status = {
   outcome: Outcome;
   /**
    * The winning paragraph. Null when the person is a citizen otherwise than
-   * under a paragraph of s. 3(1) as it now reads — someone who simply became a
+   * under a paragraph of s. 3(1) as it now reads, someone who simply became a
    * citizen on 1 January 1947 under the 1946 Act and died before 1977 is a
    * citizen, and is a valid (q) parent, but no current paragraph describes them.
    */
@@ -303,9 +303,9 @@ export type Status = {
   /** `3(7)(k)`, or null where the paragraph has no deeming rule. */
   deemingProvision: string | null;
   remediedBy: Amendment | null;
-  /** Became a citizen on 1947-01-01 under the 1946 Act — the literal (q) parent test. */
+  /** Became a citizen on 1947-01-01 under the 1946 Act, the literal (q) parent test. */
   became1947ActCitizen: boolean;
-  /** Became a citizen on 1949-04-01 under s. 44A — the literal (r) parent test. */
+  /** Became a citizen on 1949-04-01 under s. 44A, the literal (r) parent test. */
   became1949ActCitizen: boolean;
   /** 0 for a birth in Canada or Newfoundland, 1 for the first generation abroad. */
   generationAbroad: number;
@@ -320,7 +320,7 @@ export type Status = {
   orgId: OrgId | null;
 };
 
-/** An entry from the ORG ID table at ATIP pp. 63–65. */
+/** An entry from the ORG ID table at ATIP pp. 63-65. */
 export type OrgId = {
   /** Thirteen characters beginning with a capital letter O, not a zero. */
   id: string;
@@ -335,9 +335,9 @@ export type Headline = {
   paragraph: Paragraph | null;
   effectiveDate: IsoDate | null;
   /**
-   * `clear` — nothing flagged, nothing assumed that could flip it.
-   * `flagged` — an answer, but resting on a contested reading or an assumption.
-   * `unknown` — no answer without more facts.
+   * `clear`: nothing flagged, nothing assumed that could flip it.
+   * `flagged`: an answer, but resting on a contested reading or an assumption.
+   * `unknown`: no answer without more facts.
    */
   confidence: "clear" | "flagged" | "unknown";
   summary: string;

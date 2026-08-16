@@ -16,7 +16,7 @@ const STEPS = [
   },
   {
     title: "Get a table you can act on",
-    body: "Every relative, the paragraph that applies to them, when their citizenship took effect, and why — plus the documents to chase if something is still unknown.",
+    body: "Every relative, the paragraph that applies to them, when their citizenship took effect, and why, plus the documents to chase if something is still unknown.",
   },
 ];
 
@@ -32,7 +32,7 @@ export default function Home() {
         descend from a Canadian. IRCC classifies{" "}
         <strong className="font-medium text-foreground">every generation</strong>{" "}
         under a specific paragraph of section 3 of the{" "}
-        <em>Citizenship Act</em>, and each generation&rsquo;s answer depends on
+        <em>Citizenship Act</em>, and each generation&apos;s answer depends on
         the one before it. c3check follows that chain and shows its reasoning at
         every step.
       </p>

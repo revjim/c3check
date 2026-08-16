@@ -9,7 +9,7 @@
  * - **No default.** The fact must be asked. Until it is, the person is
  *   `undetermined` and the engine names the fact and the documents. Whether the
  *   anchor naturalised abroad has no common answer, and it decides whether (k)
- *   applies at all — guessing would be worse than saying nothing.
+ *   applies at all, guessing would be worse than saying nothing.
  * - **Has a default.** The engine proceeds using it and records an assumption on
  *   the result. A declaration of alienage before 1947, Crown service, a prior
  *   renunciation: rare, decisive, and dishonest to hide. They are listed on the
@@ -43,10 +43,10 @@ export const FACTS: Record<FactId, FactEntry> = {
   ceasedBritishSubject: {
     id: "ceasedBritishSubject",
     question:
-      "Before 1 January 1947 (or 1 April 1949 for Newfoundland), did {person} stop being a British subject — by becoming a citizen of another country, or, for a woman, by marrying a man who was not a British subject?",
+      "Before 1 January 1947 (or 1 April 1949 for Newfoundland), did {person} stop being a British subject by becoming a citizen of another country, or, for a woman, by marrying a man who was not a British subject?",
     why: "This is what puts an ancestor born in Canada into paragraph 3(1)(k) rather than simply making them a citizen in 1947. Everything below them in the line depends on which it was.",
     // No default. There is no common answer, and it decides whether (k) applies
-    // at all — the difference between a (k) anchor and no anchor.
+    // at all, the difference between a (k) anchor and no anchor.
     documents: "loss-of-british-subject-status",
   },
   livedInCanadaOrNewfoundland: {
@@ -96,18 +96,18 @@ export const FACTS: Record<FactId, FactEntry> = {
   canadianDomicileOnPivot: {
     id: "canadianDomicileOnPivot",
     question:
-      "On 1 January 1947 (or 1 April 1949), did {person} have 'Canadian domicile' — five years' residence in Canada after being landed?",
+      "On 1 January 1947 (or 1 April 1949), did {person} have 'Canadian domicile', meaning five years' residence in Canada after being landed?",
     why: "A British subject who had Canadian domicile on that date became a citizen under the 1946 Act. Paragraphs (m) and (n) catch only those who did not, so this decides which side of the line they fall on.",
     defaultWhenUnasked: false,
     defaultStatement:
-      "assumed not to have had five years\u2019 residence after landing, and so not to have had Canadian domicile on the pivot date",
+      "assumed not to have had five years' residence after landing, and so not to have had Canadian domicile on the pivot date",
     documents: "canadian-domicile",
   },
   declarationOfAlienage: {
     id: "declarationOfAlienage",
     question:
       "Before 1 January 1947 (or 1 April 1949), did {person} make a formal declaration of alienage?",
-    why: "Subsections 3(2.1)(a) and 3(2.3)(a) shut off paragraphs (k), (m), (o) and (q) — and their Newfoundland equivalents — for anyone who did.",
+    why: "Subsections 3(2.1)(a) and 3(2.3)(a) shut off paragraphs (k), (m), (o) and (q), together with their Newfoundland equivalents, for anyone who did.",
     defaultWhenUnasked: false,
     defaultStatement:
       "assumed not to have made a declaration of alienage",
@@ -126,7 +126,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   renouncedCitizenship: {
     id: "renouncedCitizenship",
     question: "Did {person} ever renounce their Canadian citizenship?",
-    why: "Every one of the five bar provisions — 3(2.1) through 3(2.5) — turns on a grant followed by a renunciation.",
+    why: "Every one of the five bar provisions, 3(2.1) through 3(2.5), turns on a grant followed by a renunciation.",
     defaultWhenUnasked: false,
     defaultStatement:
       "assumed never to have renounced Canadian citizenship",
@@ -135,7 +135,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   lostAndRestored: {
     id: "lostAndRestored",
     question:
-      "Did {person} ever lose Canadian citizenship and later get it back — including failing to retain it before their 28th birthday under the old section 8?",
+      "Did {person} ever lose Canadian citizenship and later get it back, including failing to retain it before their 28th birthday under the old section 8?",
     why: "That is paragraph (f), (h), (i) or (j) territory. Those paragraphs run on their own timeline, and this tool stops rather than guess at them.",
     defaultWhenUnasked: false,
     defaultStatement:
@@ -164,7 +164,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   crownServiceParent: {
     id: "crownServiceParent",
     question:
-      "When {person} was born, was either parent working outside Canada for the Canadian Armed Forces, the federal public service, or a provincial public service — other than as locally engaged staff?",
+      "When {person} was born, was either parent working outside Canada for the Canadian Armed Forces, the federal public service, or a provincial public service, other than as locally engaged staff?",
     why: "Subsection 3(5)(a) removes the 1,095-day physical-presence requirement entirely for the child of someone in Crown service abroad.",
     defaultWhenUnasked: false,
     defaultStatement:
@@ -178,7 +178,7 @@ export const FACTS: Record<FactId, FactEntry> = {
     why: "Subsection 3(5)(b) extends the same exception one generation further, to the grandchild of someone in Crown service abroad.",
     defaultWhenUnasked: false,
     defaultStatement:
-      "assumed that no grandparent was in Crown service abroad at the parent\u2019s birth",
+      "assumed that no grandparent was in Crown service abroad at the parent's birth",
     documents: "crown-service",
   },
   presenceDaysInCanada: {
@@ -212,7 +212,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
 };
 
-/** Facts with no safe default — the ones that must be asked. */
+/** Facts with no safe default, the ones that must be asked. */
 export const FACTS_WITHOUT_DEFAULTS: FactId[] = (
   Object.keys(FACTS) as FactId[]
 ).filter((id) => FACTS[id].defaultWhenUnasked === undefined);

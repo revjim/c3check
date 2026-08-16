@@ -2,7 +2,7 @@
  * The rule table, as data.
  *
  * **First-match-wins is wrong.** A person can satisfy several paragraphs at
- * once — (m) is a British subject born abroad who was ordinarily resident in
+ * once, (m) is a British subject born abroad who was ordinarily resident in
  * Canada on 1 January 1947; (o) is someone born abroad before 1947 to a (k) or
  * (m) parent; one person can be both. That is precisely why subsection 3(6.3)
  * exists. So every rule is evaluated against every person and all matches are
@@ -41,8 +41,8 @@ import type {
  *
  * This is not a paragraph of s. 3(1) and it is not something the current Act
  * assigns. It is nonetheless load-bearing twice over: it is the literal parent
- * test in paragraph (q) — "a parent who became a citizen on that day under the
- * Canadian Citizenship Act, S.C. 1946, c. 15" — and it is what makes someone a
+ * test in paragraph (q), "a parent who became a citizen on that day under the
+ * Canadian Citizenship Act, S.C. 1946, c. 15", and it is what makes someone a
  * (d) rather than a (g).
  */
 export type FormerActCitizenship =
@@ -54,7 +54,7 @@ export type RuleContext = {
   person: Person;
   label: string;
   birthDate: IsoDate;
-  /** Resolved against the birth date — Newfoundland before the union is its own class. */
+  /** Resolved against the birth date, Newfoundland before the union is its own class. */
   place: BirthplaceClass;
   /** 1947-01-01, or 1949-04-01 for a pre-union Newfoundland birth. */
   pivot: IsoDate;
@@ -63,7 +63,7 @@ export type RuleContext = {
   /** The previous person in the line, already classified. Null for the anchor. */
   parent: Status | null;
   /**
-   * The parent exists but could not be classified — undetermined, or below a
+   * The parent exists but could not be classified, undetermined, or below a
    * detect-and-stop. Every parent test then answers `unknown` rather than `no`,
    * so an unresolved ancestor propagates as uncertainty instead of a denial.
    */
@@ -90,7 +90,7 @@ export type RuleVerdict =
       because: string;
       /** A deceased-parent bridge or other provision relied on, e.g. `3(1.2)`. */
       via?: string;
-      /** Set only where 3(7) has no rule for the paragraph — (a) and (d). */
+      /** Set only where 3(7) has no rule for the paragraph, (a) and (d). */
       effectiveOverride?: IsoDate;
       flags?: FlagSeed[];
     }
@@ -165,9 +165,9 @@ const JUDGMENT_CALL = (label: string, term: string): FlagSeed => ({
 });
 
 /**
- * Paragraph (q) contains no first-generation wording. IRCC asserts one twice —
+ * Paragraph (q) contains no first-generation wording. IRCC asserts one twice,
  * in the PDI heading ("Born before January 1, 1947, in the first generation
- * outside Canada…") and again in the C-3 training deck at ATIP p. 155 ("When
+ * outside Canada...") and again in the C-3 training deck at ATIP p. 155 ("When
  * paragraphs 3(1)(q) and (r) were written you could only be a (q) or an (r) if
  * you were born in the first generation outside of Canada"). The statute says
  * no such thing; its only limiter is the parent test.
@@ -175,22 +175,22 @@ const JUDGMENT_CALL = (label: string, term: string): FlagSeed => ({
 const FIRST_GEN_READING = (paragraph: "q" | "r"): FlagSeed => ({
   id: "first-gen-reading",
   title: `IRCC reads a first-generation limit into 3(1)(${paragraph})`,
-  detail: `The text of paragraph 3(1)(${paragraph}) contains no first-generation wording — its only limiter is the parent test. IRCC's published guidance and its internal training material both describe the paragraph as applying in the first generation outside Canada. This tool follows the statute; be ready for an officer who follows the guidance.`,
+  detail: `The text of paragraph 3(1)(${paragraph}) contains no first-generation wording, its only limiter is the parent test. IRCC's published guidance and its internal training material both describe the paragraph as applying in the first generation outside Canada. This tool follows the statute; be ready for an officer who follows the guidance.`,
   sourceId: "ircc-pdi",
 });
 
 /**
  * The first excluded cohort, ATIP p. 155: "people born before January 1, 1947
  * whose parent is a (q) and those born before April 1, 1949 whose parent is an
- * (r)… Until further operational instructions are given, these cases are to be
- * set aside." The internal guidance that would resolve it — ATIP p. 134,
+ * (r)... Until further operational instructions are given, these cases are to be
+ * set aside." The internal guidance that would resolve it, ATIP p. 134,
  * "Recognition of a person as a Canadian citizen under paragraph 3(1)(q) where
  * their Canadian parent is also a citizen under paragraph 3(1)(q) (Internal
- * only)" — is withheld under section 23. The answer is genuinely unknown.
+ * only)", is withheld under section 23. The answer is genuinely unknown.
  */
 const CONSECUTIVE = (paragraph: "q" | "r"): FlagSeed => ({
   id: "consecutive-q",
-  title: `A (${paragraph}) whose parent is also a (${paragraph}) — IRCC has paused these`,
+  title: `A (${paragraph}) whose parent is also a (${paragraph}); IRCC has paused these`,
   detail: `IRCC's C-3 training material identifies this as a cohort that "may not automatically become citizens by operation of law" and directs that the cases "are to be set aside" until further operational instructions. The guidance that would resolve it is withheld under section 23 of the Access to Information Act. The classification below follows the statute; IRCC has not said it will.`,
   sourceId: "atip-1a-2025-14201",
 });
@@ -200,7 +200,7 @@ const CONSECUTIVE = (paragraph: "q" | "r"): FlagSeed => ({
 // ---------------------------------------------------------------------------
 
 /**
- * Ordered for readability, not for precedence. Order carries no meaning here —
+ * Ordered for readability, not for precedence. Order carries no meaning here,
  * every rule runs, and `precedence.ts` resolves the result.
  */
 export const RULES: Rule[] = [
@@ -277,7 +277,7 @@ export const RULES: Rule[] = [
       if (isOnOrAfter(ctx.formerAct.from, ACT_1977)) {
         return no("did not become a citizen until 15 February 1977 or later");
       }
-      // "Immediately before February 15, 1977" — so alive on the 14th.
+      // "Immediately before February 15, 1977", so alive on the 14th.
       if (!ctx.aliveOn("1977-02-14")) {
         return no(
           "died before 15 February 1977, so was not a citizen immediately before that date",
@@ -308,7 +308,7 @@ export const RULES: Rule[] = [
         // of 1947-01-01 was not a citizen at a birth in 1942, however retroactive
         // the deeming: such a child is a (q), not a (g).
         return no(
-          "no parent in this line was a citizen at the time of the birth — a parent deemed a citizen as of 1 January 1947 was not yet a citizen at an earlier birth",
+          "no parent in this line was a citizen at the time of the birth, a parent deemed a citizen as of 1 January 1947 was not yet a citizen at an earlier birth",
         );
       }
       if (ctx.formerAct.state === "unknown") {
@@ -322,7 +322,7 @@ export const RULES: Rule[] = [
       // A grant does not defeat (g) here. Subsection 3(6.5) deems a person who
       // is described in (b), (f) to (j), (q) or (r) as a result of Bill C-3, and
       // who was granted citizenship before it came into force, never to have
-      // been a citizen by way of grant — except for the purposes of the bar
+      // been a citizen by way of grant, except for the purposes of the bar
       // provisions. So the paragraph matches and `bars.ts` does the work. An
       // unrenounced grant never reaches this point: it is a detect-and-stop.
       const via = usesDeathBridge(ctx);
@@ -346,7 +346,7 @@ export const RULES: Rule[] = [
       if (isOnOrAfter(ctx.birthDate, ACT_1947)) {
         return no("born on or after 1 January 1947");
       }
-      // Read the naturalisation fact only where it could matter — otherwise every
+      // Read the naturalisation fact only where it could matter, otherwise every
       // Canadian-born anchor collects an assumption that changed nothing.
       if (ctx.place !== "canada" && ctx.bool("naturalizedInCanada") !== true) {
         return no("neither born nor naturalised in Canada before 1947");
@@ -360,7 +360,7 @@ export const RULES: Rule[] = [
       }
       if (!ceased) {
         return no(
-          "did not cease to be a British subject before 1947 — dying before 1947 is not ceasing, and someone who kept the status simply became a citizen on 1 January 1947",
+          "did not cease to be a British subject before 1947, dying before 1947 is not ceasing, and someone who kept the status simply became a citizen on 1 January 1947",
         );
       }
       return {
@@ -465,7 +465,7 @@ export const RULES: Rule[] = [
 // Rule bodies shared between the Canada and Newfoundland tracks
 // ---------------------------------------------------------------------------
 
-/** Paragraphs (m) and (n) — identical but for the place and the pivot date. */
+/** Paragraphs (m) and (n), identical but for the place and the pivot date. */
 function ordinarilyResidentRule(ctx: RuleContext, paragraph: "m" | "n"): RuleVerdict {
   const nfld = paragraph === "n";
   const pivot = nfld ? NFLD_UNION : ACT_1947;
@@ -548,7 +548,7 @@ function ordinarilyResidentRule(ctx: RuleContext, paragraph: "m" | "n"): RuleVer
   }
   if (domicile) {
     return no(
-      `had ${nfld ? "Newfoundland" : "Canadian"} domicile on ${pivot}, and so did become a citizen that day — this paragraph catches only those who did not`,
+      `had ${nfld ? "Newfoundland" : "Canadian"} domicile on ${pivot}, and so did become a citizen that day; this paragraph catches only those who did not`,
     );
   }
 
@@ -556,13 +556,13 @@ function ordinarilyResidentRule(ctx: RuleContext, paragraph: "m" | "n"): RuleVer
     kind: "match",
     because: `on ${pivot} was a British subject, neither born nor naturalised in ${where}, ordinarily resident there, and without ${
       nfld ? "Newfoundland" : "Canadian"
-    } domicile — so did not become a citizen that day`,
+    } domicile, so did not become a citizen that day`,
     flags: [JUDGMENT_CALL(ctx.label, "ordinarily resident")],
   };
 }
 
 /**
- * Paragraphs (o), (p), (q) and (r) — the four derived pre-union paragraphs.
+ * Paragraphs (o), (p), (q) and (r), the four derived pre-union paragraphs.
  * All four require a birth outside both Canada and Newfoundland before the
  * pivot, a parent of a particular kind, and that the person did not themselves
  * become a citizen on the pivot date. They differ only in the parent test.
@@ -613,10 +613,10 @@ function derivedPreUnionRule(
     };
   }
 
-  // (q) and (r). The parent test is literal — "a parent who became a citizen on
-  // that day under the Canadian Citizenship Act, S.C. 1946, c. 15" — but IRCC's
+  // (q) and (r). The parent test is literal, "a parent who became a citizen on
+  // that day under the Canadian Citizenship Act, S.C. 1946, c. 15", but IRCC's
   // internal guidance (ATIP p. 135) extends it: a parent "recognized as citizens
-  // as a result of amendments … under Bill C-24 and who were deemed to be
+  // as a result of amendments ... under Bill C-24 and who were deemed to be
   // citizens as of January 1, 1947, under subsection 3(7)" is to be treated as
   // satisfying it. This engine follows that reading, and flags it.
   const parent = ctx.parent;
@@ -661,7 +661,7 @@ function derivedPreUnionRule(
 }
 
 /**
- * Subsection 3(1.5): where the parent — or the parent and the grandparent — died
+ * Subsection 3(1.5): where the parent, or the parent and the grandparent, died
  * before Bill C-3 came into force, and would have been a citizen as a result of
  * it. Returns the provision to cite, or undefined where no bridge is needed.
  */

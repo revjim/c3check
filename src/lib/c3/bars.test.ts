@@ -12,7 +12,7 @@ const statusOf = (chain: Person[], id: string): Status => {
 const barsCited = (status: Status): string[] =>
   status.trace.filter((t) => t.kind === "barred").map((t) => t.provision);
 
-describe("3(2.1) — declaration of alienage", () => {
+describe("3(2.1): declaration of alienage", () => {
   it("shuts off (k) for an anchor who declared alienage", () => {
     const status = statusOf(
       withFacts(gcmsChain, "g0", { declarationOfAlienage: true }),
@@ -31,7 +31,7 @@ describe("3(2.1) — declaration of alienage", () => {
 
   it("leaves the (m) route open for anyone who did live in Canada", () => {
     // Barring the anchor ends the claim by descent. It does not decide whether
-    // someone born before 1947 was an (m) in their own right — so where that
+    // someone born before 1947 was an (m) in their own right, so where that
     // branch is open, the engine says so instead of reporting a refusal it
     // cannot support.
     const barred = withFacts(
@@ -62,7 +62,7 @@ describe("3(2.1) — declaration of alienage", () => {
   });
 });
 
-describe("3(2.3) — the Newfoundland bar", () => {
+describe("3(2.3): the Newfoundland bar", () => {
   it("shuts off (l), not (k)", () => {
     const status = statusOf(
       withFacts(newfoundlandBeforeUnionChain, "g0", {
@@ -79,7 +79,7 @@ describe("3(2.3) — the Newfoundland bar", () => {
   });
 });
 
-describe("3(2.5) — a grant before C-3, then a renunciation", () => {
+describe("3(2.5): a grant before C-3, then a renunciation", () => {
   it("shuts off (q)", () => {
     const status = statusOf(
       withFacts(gcmsChain, "g2", {
@@ -103,7 +103,7 @@ describe("3(2.5) — a grant before C-3, then a renunciation", () => {
   });
 });
 
-describe("3(2.2) — the derivative bar", () => {
+describe("3(2.2): the derivative bar", () => {
   // The one that cannot be evaluated without the parent's paragraph: it reaches
   // a (b), (g) or (h) only where the claim rests solely on a (k), (m), (o) or
   // (q) parent.
@@ -140,7 +140,7 @@ describe("3(2.2) — the derivative bar", () => {
 });
 
 describe("bars and the rest of the engine", () => {
-  it("does not stop the person being classified — it removes the paragraph", () => {
+  it("does not stop the person being classified; it removes the paragraph", () => {
     // The paragraph still matched; the trace has to show both, or the reason a
     // claim failed is invisible.
     const status = statusOf(

@@ -1,5 +1,5 @@
 /**
- * A deliberately stylized maple leaf — seven points, rounded joins, and a
+ * A deliberately stylized maple leaf: seven points, rounded joins, and a
  * non-flag colour.
  *
  * This is NOT the eleven-point device from the national flag, and that is on

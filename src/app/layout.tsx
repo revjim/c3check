@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "c3check — Canadian citizenship by descent, generation by generation",
-    template: "%s — c3check",
+    default: "c3check, Canadian citizenship by descent, generation by generation",
+    template: "%s, c3check",
   },
   description:
     "Work out which paragraph of section 3 of the Citizenship Act applies to each generation of a family line under the Bill C-3 rules. Free, educational, and processed entirely in your browser.",

@@ -53,7 +53,7 @@ next-env.d.ts
 # *.local.ts and it will be ignored.
 # ---------------------------------------------------------------------------
 
-# Genealogy exports — always personal data
+# Genealogy exports, always personal data
 *.ged
 *.gedcom
 *.GED

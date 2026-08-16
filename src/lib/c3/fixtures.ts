@@ -5,11 +5,11 @@
  * places are invented; what is reproduced from the public sources is the
  * *shape* of a chain and the paragraph cascade it should produce, never a real
  * person's data. `.gitignore` blocks `*.ged`, `/reference/`, `/private/` and
- * `*.local.ts` so a real chain cannot be committed by accident — put one in a
+ * `*.local.ts` so a real chain cannot be committed by accident; put one in a
  * `*.local.ts` file if you need it to debug.
  *
- * The first fixture is the important one. It reproduces the k → o → q → q → g
- * cascade from the GCMS notes published in the r/CanadianbyDescent thread —
+ * The first fixture is the important one. It reproduces the k -> o -> q -> q -> g
+ * cascade from the GCMS notes published in the r/CanadianbyDescent thread,
  * already public, already anonymous, and the only end-to-end check against a
  * known-correct IRCC classification that exists.
  */
@@ -17,11 +17,11 @@
 import type { Person } from "./types";
 
 /**
- * The published GCMS chain: k → o → q → q → g.
+ * The published GCMS chain: k -> o -> q -> q -> g.
  *
  * G0 is born in Canada before 1947 and naturalises in another country, which is
  * what makes them a (k) rather than simply a citizen in 1947. G1, born abroad
- * before 1947 to that (k), is an (o) — and also a (q) on IRCC's own reading of
+ * before 1947 to that (k), is an (o), and also a (q) on IRCC's own reading of
  * the parent test, which is where the (o)-over-(q) tie-break earns its keep.
  * G2 and G3 are consecutive (q)s. G4, born abroad before 1977 to a parent who
  * was by then a citizen effective 1947, is a (g).
@@ -50,7 +50,7 @@ export const gcmsChain: Person[] = [
 /**
  * The female-anchor variant from the same thread: a woman born in Canada who
  * lost British subject status on marrying a man who was not one. The cascade is
- * identical — the fact that produces the (k) is different, not the paragraph.
+ * identical; the fact that produces the (k) is different, not the paragraph.
  *
  * A caveat the engine does not model: under the nationality law of the day,
  * British subject status passed through the paternal line and only within a
@@ -80,8 +80,8 @@ export const femaleAnchorChain: Person[] = [
 ];
 
 /**
- * A modern anchor. An ancestor born in Canada in 1960 is a **(d)** — "was a
- * citizen immediately before February 15, 1977" — not a (k). The (k) track
+ * A modern anchor. An ancestor born in Canada in 1960 is a **(d)**, "was a
+ * citizen immediately before February 15, 1977", not a (k). The (k) track
  * exists only for people born before 1947 who *lost* British subject status.
  * This chain guards the bug where "born in Canada" is read as "(k)".
  */
@@ -123,7 +123,7 @@ export const overlapChain: Person[] = [
 /**
  * Newfoundland before the union: born there in 1930, lost British subject
  * status, so an (l) effective 1 April 1949. The child born abroad in 1940 is a
- * (p). Neither is a (k) or an (o) — before the union Newfoundland was not
+ * (p). Neither is a (k) or an (o); before the union Newfoundland was not
  * Canada, and the Act keeps an entirely separate set of paragraphs for it.
  */
 export const newfoundlandBeforeUnionChain: Person[] = [
@@ -146,7 +146,7 @@ export const newfoundlandBeforeUnionChain: Person[] = [
 
 /**
  * The same place, the other side of the line. Born in Newfoundland in 1955,
- * after the union, so born in Canada — a (d), with no (l) or (n) in sight.
+ * after the union, so born in Canada: a (d), with no (l) or (n) in sight.
  */
 export const newfoundlandAfterUnionChain: Person[] = [
   { id: "g0", label: "G0", birthDate: "1955-03-03", birthRegion: "newfoundland" },
@@ -154,7 +154,7 @@ export const newfoundlandAfterUnionChain: Person[] = [
 ];
 
 /**
- * A post-C-3 birth abroad in the second generation — the only situation in which
+ * A post-C-3 birth abroad in the second generation, the only situation in which
  * subsection 3(3) still bites. Pass the parent's physical-presence days, or
  * Crown service, through `facts` on the applicant.
  */

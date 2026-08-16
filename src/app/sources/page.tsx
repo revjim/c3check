@@ -38,8 +38,9 @@ export default function SourcesPage() {
                     {s.title}
                   </a>
                   <p className="mt-1 text-sm text-subtle">
-                    {s.citation}
-                    {s.inForce ? ` · ${s.inForce}` : ""}
+                    {/* One expression, so JSX does not insert whitespace
+                        between the citation and the comma. */}
+                    {s.inForce ? `${s.citation}, ${s.inForce}` : s.citation}
                   </p>
                   {s.note ? (
                     <p className="mt-2 text-sm leading-6 text-muted">{s.note}</p>

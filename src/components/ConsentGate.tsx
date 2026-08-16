@@ -16,7 +16,7 @@ const POINTS = [
   },
   {
     heading: "It can be wrong",
-    body: "Parts of the government guidance behind these rules are withheld from public release, and IRCC's own documents contradict each other in places. Where an answer is genuinely unresolved you will see it flagged — but not every error will be.",
+    body: "Parts of the government guidance behind these rules are withheld from public release, and IRCC's own documents contradict each other in places. Where an answer is genuinely unresolved you will see it flagged, but not every error will be.",
   },
   {
     heading: "Your family details stay in your browser",
@@ -25,7 +25,7 @@ const POINTS = [
 ];
 
 /**
- * Explicit one-time acceptance before the interview — clickwrap rather than
+ * Explicit one-time acceptance before the interview, clickwrap rather than
  * "by continuing you agree", which is much weaker.
  *
  * Gates the interview only. /terms, /privacy and /sources stay readable
@@ -70,7 +70,7 @@ export function ConsentGate({ children }: { children: React.ReactNode }) {
         onClick={acceptTerms}
         className="mt-10 inline-flex h-11 items-center rounded-full bg-brand px-6 font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
-        I understand — start the interview
+        I understand, start the interview
       </button>
 
       <p className="mt-4 text-sm text-subtle">
