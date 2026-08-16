@@ -40,3 +40,78 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ---------------------------------------------------------------------------
+ * Print.
+ *
+ * One block here rather than `print:` variants scattered through the report,
+ * because the design is entirely token-driven and has no `dark:` classes
+ * anywhere: redefining the seven variables fixes every colour on the page at
+ * once. That includes the bug this exists to prevent, where a reader whose
+ * system is in dark mode prints white text onto white paper and gets a stack of
+ * blank sheets. The media query wins over `prefers-color-scheme` above because
+ * it comes later and both have the same specificity.
+ * ------------------------------------------------------------------------- */
+
+@media print {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --muted: #333333;
+    --subtle: #555555;
+    --border: #999999;
+    --surface: #ffffff;
+    /* Ink, not brand. An emphatic card in orange costs a colour cartridge and
+       reads worse than a rule on a laser printer. */
+    --brand: #000000;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 11pt;
+  }
+
+  /* The site chrome is navigation, and a printout cannot be navigated. */
+  header,
+  footer nav,
+  nav[aria-label="Breadcrumb"] {
+    display: none;
+  }
+
+  main {
+    /* The report sets its own width; page margins are the printer's job. */
+    max-width: none;
+  }
+
+  /* A generation, an advisory or an assumption split across a page break is
+     unreadable, and this report is made of them. */
+  li,
+  section,
+  article,
+  details,
+  h2,
+  h3 {
+    break-inside: avoid;
+  }
+
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  /* A printout leaves the site and loses every link with it, so the ones that
+     point at legislation and case law have to carry their address. Internal
+     links are left alone: a bare path is no use on paper. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    word-break: break-all;
+  }
+
+  /* Blocks that carry meaning through a tint need a visible edge in ink. */
+  .bg-brand\/5 {
+    border: 1pt solid #000000;
+    background: transparent;
+  }
+}

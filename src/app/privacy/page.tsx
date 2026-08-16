@@ -43,13 +43,20 @@ export default function PrivacyPage() {
         <ul className="ml-5 list-disc space-y-1">
           <li>
             <code className="font-mono text-sm">{DRAFT_KEY}</code>, the family
-            line you have entered and the answers you have given.
+            line you have entered and the answers you have given. Concretely:
+            any name or description you typed for a relative, exactly as you
+            typed it, each birth date, each place of birth, any date of death,
+            and every answer to a question the interview asked.
           </li>
           <li>
             <code className="font-mono text-sm">{CONSENT_KEY}</code>, a record
             that you accepted the terms, so you are not asked repeatedly.
           </li>
         </ul>
+        <p>
+          That is the complete list. There is no third key, no cookie carrying
+          any of it, and nothing is copied anywhere else on the way through.
+        </p>
         <p>
           This stays on your device and is not transmitted. It does mean that
           anyone else who uses the same browser profile could see it, so take
@@ -60,11 +67,24 @@ export default function PrivacyPage() {
 
       <Section title="Nothing goes in the URL">
         <p>
-          c3check deliberately does not offer shareable result links. Putting a
-          family line into a URL would place it in your browser history, in the
-          history of anyone you sent it to, and in the logs of any service the
-          link passed through. The convenience is not worth that, so results
-          live only in the page you are looking at.
+          <strong className="font-medium text-foreground">
+            The only thing that ever appears in the URL is a step number.
+          </strong>{" "}
+          Not a name, not a date, not a place, and not an answer. The interview
+          addresses each question as a plain ordinal, so a page in your browser
+          history reads{" "}
+          <code className="font-mono text-sm">/check/interview?step=4</code>{" "}
+          and nothing more. Which question that was depends entirely on what is
+          stored on your device, and cannot be worked out from the address.
+        </p>
+        <p>
+          c3check also deliberately does not offer shareable result links.
+          Putting a family line into a URL would place it in your browser
+          history, in the history of anyone you sent it to, and in the logs of
+          any service the link passed through. The convenience is not worth
+          that, so results live only in the page you are looking at. To keep a
+          copy, print the results page or use the button that copies it as
+          plain text.
         </p>
       </Section>
 

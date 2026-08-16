@@ -5,7 +5,8 @@
  * Shared between the consent gate and the "Clear my data" button so that
  * clearing storage immediately re-arms the gate.
  */
-import { CONSENT_KEY, DRAFT_KEY } from "@/lib/site";
+import { resetDraft } from "@/lib/draftStore";
+import { CONSENT_KEY } from "@/lib/site";
 
 export type ConsentStatus = "loading" | "granted" | "needed";
 
@@ -62,14 +63,22 @@ export function acceptTerms() {
   notify();
 }
 
-/** Erases everything c3check has stored on this device. */
+/**
+ * Erases everything c3check has stored on this device.
+ *
+ * The draft is removed through `resetDraft` rather than by deleting the key
+ * here: the draft store caches the last parsed snapshot and keeps its own
+ * subscribers, so removing the key behind its back would leave an interview on
+ * screen that no longer exists in storage. One-way dependency, consent to
+ * draft, so there is no cycle and `ClearDataButton` needs no change.
+ */
 export function clearStoredData() {
   acceptedThisSession = false;
   try {
     window.localStorage.removeItem(CONSENT_KEY);
-    window.localStorage.removeItem(DRAFT_KEY);
   } catch {
     // Nothing was stored in the first place.
   }
+  resetDraft();
   notify();
 }
