@@ -51,9 +51,18 @@ export function CheckEntry() {
           shared computer.
         </p>
 
-        <button type="button" onClick={start} className={buttonClasses("primary", "mt-8")}>
-          Start with yourself
-        </button>
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <button type="button" onClick={start} className={buttonClasses("primary")}>
+            Start with yourself
+          </button>
+          <Link href="/check/import" className={buttonClasses("secondary")}>
+            Import a family tree file
+          </Link>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-subtle">
+          A GEDCOM file is read in this browser and never uploaded. It saves
+          typing; it does not save answering.
+        </p>
 
         <p className="mt-8 text-sm leading-6 text-subtle">
           You can stop at any point and come back. There is no account and
@@ -100,6 +109,9 @@ export function CheckEntry() {
         <button type="button" onClick={start} className={buttonClasses("secondary")}>
           Start another line
         </button>
+        <Link href="/check/import" className={buttonClasses("secondary")}>
+          Import a family tree file
+        </Link>
         <Link href="/check/lines" className="text-sm text-brand underline underline-offset-4">
           Manage saved lines
         </Link>

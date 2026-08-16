@@ -88,6 +88,26 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
+      <Section title="Family tree files">
+        <p>
+          If you import a GEDCOM file, it is read by code running in your
+          browser. There is no upload and no server endpoint that receives it.
+          The parsed file is held in the page while you use it and is discarded
+          when you reload, navigate away, or press &quot;Forget this
+          file&quot;. Only the people in the line you actually choose are copied
+          into the saved draft described above.
+        </p>
+        <p>
+          Most of the file is never read at all. A family tree carries notes,
+          sources, photographs, addresses, causes of death and medical facts
+          about living people who have not agreed to anything, so the parser
+          reads only names, sexes, dates, places and parent links, and discards
+          everything else before it reaches memory. That is enforced in the code
+          rather than promised: there is a test that parses a file full of notes
+          and addresses and asserts that none of that text survives.
+        </p>
+      </Section>
+
       <Section title="Analytics">
         <p>
           This site uses{" "}
