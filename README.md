@@ -1,7 +1,8 @@
 # c3check
 
 Next.js (App Router) + TypeScript + Tailwind. Deployed on Vercel, source on GitHub.
-Target domain: **c3check.com** (not yet configured).
+Live at **https://c3check.com**. The `c3check.vercel.app` alias still resolves and
+serves the same deployment, but the domain is what the site calls itself.
 
 ## Local development
 

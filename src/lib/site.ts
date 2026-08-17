@@ -31,8 +31,10 @@ export const POLICY_UPDATED = "16 August 2026";
 
 /**
  * Shown at the foot of a printed report, which leaves the site and loses the
- * chrome along with any way of telling where it came from. The target domain
- * c3check.com is not configured yet, so this is the alias that actually
- * resolves; change it here and the printout follows.
+ * chrome along with any way of telling where it came from. So it has to be the
+ * address a stranger holding the paper can type, which is the domain rather
+ * than the deploy that happens to serve it: c3check.vercel.app still answers,
+ * but a printout outlives the hosting arrangement it was made under. Change it
+ * here and the printout follows.
  */
-export const SITE_URL = "https://c3check.vercel.app";
+export const SITE_URL = "https://c3check.com";
