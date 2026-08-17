@@ -22,6 +22,13 @@ import type { FactId } from "./types";
 
 export type FactEntry = {
   id: FactId;
+  /**
+   * A few words naming the subject, for the trail of answered questions in the
+   * interview. Not a question and not a statement of the answer: the crumb
+   * "Adopted" sits under a person's name and means "the adoption question",
+   * whichever way it was answered.
+   */
+  short: string;
   /** Asked of one person at a time. `{person}` is substituted by the interview. */
   question: string;
   /** Why this changes the answer. Shown next to the question, not buried. */
@@ -42,6 +49,7 @@ export type FactEntry = {
 export const FACTS: Record<FactId, FactEntry> = {
   ceasedBritishSubject: {
     id: "ceasedBritishSubject",
+    short: "Lost British subject status",
     question:
       "Before 1 January 1947 (or 1 April 1949 for Newfoundland), did {person} stop being a British subject by becoming a citizen of another country, or, for a woman, by marrying a man who was not a British subject?",
     why: "This is what puts an ancestor born in Canada into paragraph 3(1)(k) rather than simply making them a citizen in 1947. Everything below them in the line depends on which it was.",
@@ -51,6 +59,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   livedInCanadaOrNewfoundland: {
     id: "livedInCanadaOrNewfoundland",
+    short: "Ever lived in Canada",
     question:
       "Did {person} ever live in Canada, or in Newfoundland and Labrador before 1 April 1949?",
     why: "Paragraphs 3(1)(m) and (n) reach British subjects who were living in Canada or Newfoundland on the pivot date but were not born or naturalised there. If the family emigrated and never came back, that whole branch is closed and three further questions do not need asking.",
@@ -61,6 +70,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   britishSubjectOnPivot: {
     id: "britishSubjectOnPivot",
+    short: "British subject in 1947",
     question:
       "On 1 January 1947 (or 1 April 1949 for Newfoundland), was {person} a British subject?",
     why: "Paragraphs 3(1)(m) and (n) reach British subjects who were living in Canada or Newfoundland on that date but were not born or naturalised there.",
@@ -68,6 +78,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   ordinarilyResidentOnPivot: {
     id: "ordinarilyResidentOnPivot",
+    short: "Ordinarily resident in 1947",
     question:
       "On 1 January 1947 (or 1 April 1949 for Newfoundland), was {person} ordinarily resident in Canada (or in Newfoundland and Labrador)?",
     why: "Required by paragraphs 3(1)(m) and (n). IRCC treats 'ordinarily resident' as a fact-based assessment, so a borderline answer here is flagged rather than decided.",
@@ -75,6 +86,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   residentInNewfoundland: {
     id: "residentInNewfoundland",
+    short: "Residence in Newfoundland",
     question:
       "Was {person}'s residence on that date in Newfoundland and Labrador, rather than elsewhere in Canada?",
     why: "Paragraph 3(1)(m) measures residence in Canada on 1 January 1947; paragraph 3(1)(n) measures residence in Newfoundland and Labrador on 1 April 1949. Before the union these were different countries with different dates, and one answer cannot serve both.",
@@ -85,6 +97,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   naturalizedInCanada: {
     id: "naturalizedInCanada",
+    short: "Naturalised in Canada",
     question:
       "Did {person} ever naturalise in Canada (or in Newfoundland before 1 April 1949)?",
     why: "Paragraph 3(1)(k) covers people born *or naturalised* in Canada. Paragraphs (m) and (n) cover only those who were neither.",
@@ -95,6 +108,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   canadianDomicileOnPivot: {
     id: "canadianDomicileOnPivot",
+    short: "Canadian domicile in 1947",
     question:
       "On 1 January 1947 (or 1 April 1949), did {person} have 'Canadian domicile', meaning five years' residence in Canada after being landed?",
     why: "A British subject who had Canadian domicile on that date became a citizen under the 1946 Act. Paragraphs (m) and (n) catch only those who did not, so this decides which side of the line they fall on.",
@@ -105,6 +119,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   declarationOfAlienage: {
     id: "declarationOfAlienage",
+    short: "Declaration of alienage",
     question:
       "Before 1 January 1947 (or 1 April 1949), did {person} make a formal declaration of alienage?",
     why: "Subsections 3(2.1)(a) and 3(2.3)(a) shut off paragraphs (k), (m), (o) and (q), together with their Newfoundland equivalents, for anyone who did.",
@@ -115,6 +130,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   citizenshipByGrant: {
     id: "citizenshipByGrant",
+    short: "Citizenship by grant",
     question:
       "Was {person} ever granted Canadian citizenship, or did they acquire it by application?",
     why: "A grant is a different mechanism from citizenship by operation of law: it takes effect from the date of the grant, not retroactively. It also triggers the bars in subsections 3(2.1) to 3(2.5) if the person later renounced.",
@@ -125,6 +141,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   renouncedCitizenship: {
     id: "renouncedCitizenship",
+    short: "Renounced citizenship",
     question: "Did {person} ever renounce their Canadian citizenship?",
     why: "Every one of the five bar provisions, 3(2.1) through 3(2.5), turns on a grant followed by a renunciation.",
     defaultWhenUnasked: false,
@@ -134,6 +151,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   lostAndRestored: {
     id: "lostAndRestored",
+    short: "Lost it and got it back",
     question:
       "Did {person} ever lose Canadian citizenship and later get it back, including failing to retain it before their 28th birthday under the old section 8?",
     why: "That is paragraph (f), (h), (i) or (j) territory. Those paragraphs run on their own timeline, and this tool stops rather than guess at them.",
@@ -144,6 +162,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   adopted: {
     id: "adopted",
+    short: "Adopted",
     question: "Was {person} adopted?",
     why: "Adoption breaks the descent logic this tool follows. Citizenship for an adopted person runs through a grant under section 5.1, which takes effect from the date of the grant.",
     defaultWhenUnasked: false,
@@ -153,6 +172,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   birthAbroadRegistered: {
     id: "birthAbroadRegistered",
+    short: "Birth abroad registered",
     question:
       "Was {person}'s birth abroad registered with Canadian authorities at the time, under the 1946 or 1952 Act?",
     why: "A registered birth abroad made the person a citizen from birth back then. An unregistered one is what paragraph 3(1)(g) exists to fix. Registration was uncommon, so the default is 'no'.",
@@ -163,6 +183,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   crownServiceParent: {
     id: "crownServiceParent",
+    short: "Parent in Crown service",
     question:
       "When {person} was born, was either parent working outside Canada for the Canadian Armed Forces, the federal public service, or a provincial public service, other than as locally engaged staff?",
     why: "Subsection 3(5)(a) removes the 1,095-day physical-presence requirement entirely for the child of someone in Crown service abroad.",
@@ -173,6 +194,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   crownServiceGrandparent: {
     id: "crownServiceGrandparent",
+    short: "Grandparent in Crown service",
     question:
       "When {person}'s Canadian parent was born, was either of *their* parents working outside Canada in Crown service, other than as locally engaged staff?",
     why: "Subsection 3(5)(b) extends the same exception one generation further, to the grandchild of someone in Crown service abroad.",
@@ -183,6 +205,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   presenceDaysInCanada: {
     id: "presenceDaysInCanada",
+    short: "Days present in Canada",
     question:
       "Before {person} was born, how many days in total had their Canadian parent been physically present in Canada?",
     why: "For births on or after 15 December 2025, subsection 3(3) requires 1,095 cumulative days. Any calendar day partly spent in Canada counts; time under a probation order, on parole or serving a sentence does not.",
@@ -192,6 +215,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   certificateIssued: {
     id: "certificateIssued",
+    short: "Citizenship certificate",
     question:
       "Has {person} ever been issued a Canadian citizenship certificate?",
     why: "IRCC's 11 December 2025 bulletin pauses a file where no certificate was ever issued to the family member whose status was corrected by Bill C-24 or C-37. Obtaining one for that ancestor breaks the criterion.",
@@ -202,6 +226,7 @@ export const FACTS: Record<FactId, FactEntry> = {
   },
   foreignDiplomatParent: {
     id: "foreignDiplomatParent",
+    short: "Parent a foreign diplomat",
     question:
       "When {person} was born in Canada, was either parent a foreign diplomat, consular officer, or an officer of an international organisation with diplomatic immunity?",
     why: "Subsection 3(2) is the one exception to citizenship by birth on Canadian soil. It is rare, so the default is 'no'.",

@@ -19,7 +19,7 @@
  * components are a `switch (step.kind)` over some JSX.
  */
 
-import { questionFor } from "@/lib/c3/facts";
+import { FACTS, questionFor } from "@/lib/c3/facts";
 import type { Assumption, ChainResult, FactId } from "@/lib/c3";
 import {
   acceptDefault,
@@ -34,6 +34,7 @@ import {
   midSentence,
   needsAncestor,
   personById,
+  sentenceStart,
   setFact,
   setNoEarlierAncestor,
   setPendingEdit,
@@ -352,6 +353,112 @@ export function confirmSubjects(line: LineDraft, step: Step): Assumption[] {
   const result = classifyLine(line);
   if (result === null) return [];
   return pendingConfirmations(result, person);
+}
+
+// ---------------------------------------------------------------------------
+// The trail
+// ---------------------------------------------------------------------------
+
+/**
+ * One place already visited, and the ordinal that goes back to it.
+ *
+ * The ordinal is read at the moment the trail is built and used immediately, so
+ * it never has the chance to rot the way a stored one would. A `StepRef` is what
+ * gets written down; this is what gets clicked.
+ */
+export type Crumb = {
+  index: number;
+  step: Step;
+  /** A few words. The person is named by the group, so this does not repeat it. */
+  label: string;
+  current: boolean;
+};
+
+export type CrumbGroup = {
+  personId: string;
+  /** "You", "Your grandmother", or whatever name was typed in. */
+  label: string;
+  crumbs: Crumb[];
+};
+
+/**
+ * Everywhere the user has been, grouped by generation.
+ *
+ * **Grouped rather than laid out in queue order**, because the queue order is
+ * not the order anyone remembers answering in: identity screens for the whole
+ * line come before any fact about anyone, and the confirm pass comes after
+ * everything. "Change my grandmother's birth date" is the actual errand, so the
+ * generation is what the trail is organised around.
+ *
+ * **Applicant first**, which is the reverse of how `people` is stored. The line
+ * is stored anchor-first because that is what the engine wants; it is entered
+ * from the applicant backwards, one generation at a time, and that is the order
+ * it reads in.
+ *
+ * Only resolved steps appear, plus the one being shown and the frontier. The
+ * trail is a record of where you have been, not a table of contents for
+ * questions that have not been put yet, and half of those would evaporate
+ * before they were reached anyway.
+ *
+ * Empty where there is nowhere to go: a trail whose only entry is the screen
+ * you are looking at is furniture. The rule lives here rather than in the
+ * component so that the screens that mention the trail in their own text can
+ * ask whether there is one.
+ */
+export function crumbTrail(line: LineDraft, shown: Step): CrumbGroup[] {
+  const plan = stepPlan(line);
+  const frontier = plan.findIndex((planned) => !planned.resolved);
+  const shownIndex = plan.findIndex((planned) => sameStep(planned.step, shown));
+
+  const crumbs: Crumb[] = [];
+  plan.forEach((planned, index) => {
+    if (!planned.resolved && index !== frontier && index !== shownIndex) return;
+    crumbs.push({
+      index,
+      step: planned.step,
+      label: crumbLabel(planned.step),
+      current: index === shownIndex,
+    });
+  });
+
+  if (crumbs.length < 2) return [];
+
+  return [...line.people]
+    .reverse()
+    .map((person) => ({
+      personId: person.id,
+      label: sentenceStart(addressOf(line, person)),
+      crumbs: crumbs.filter((crumb) => personIdOf(crumb.step) === person.id),
+    }))
+    .filter((group) => group.crumbs.length > 0);
+}
+
+function personIdOf(step: Step): string | null {
+  switch (step.kind) {
+    case "person":
+    case "fact":
+    case "confirm":
+      return step.personId;
+    case "add-ancestor":
+      return step.childId;
+    case "done":
+      return null;
+  }
+}
+
+function crumbLabel(step: Step): string {
+  switch (step.kind) {
+    case "person":
+      return "Dates and places";
+    case "fact":
+      return FACTS[step.factId].short;
+    case "confirm":
+      return "What we assumed";
+    case "add-ancestor":
+      return "Anyone earlier";
+    case "done":
+      return "The result";
+  }
 }
 
 // ---------------------------------------------------------------------------

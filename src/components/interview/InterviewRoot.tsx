@@ -18,7 +18,9 @@
  *
  * Navigation is `window.history.pushState`, which integrates with the Next
  * router and syncs with `useSearchParams`, so there is no `popstate` listener
- * here and browser Back works for free.
+ * here and browser Back works for free. The trail (`StepTrail`) pushes the same
+ * kind of entry, which is what makes a jump backwards undoable by Back rather
+ * than a one-way trip.
  */
 
 import Link from "next/link";
@@ -30,14 +32,16 @@ import { FactStep } from "./FactStep";
 import { PersonStep } from "./PersonStep";
 import { PresenceStep } from "./PresenceStep";
 import { StatusStrip } from "./StatusStrip";
+import { StepTrail } from "./StepTrail";
 import { buttonClasses } from "@/components/button";
-import { currentLine, personById } from "@/lib/draft";
+import { currentLine, personById, setPendingEdit } from "@/lib/draft";
 import type { LineDraft } from "@/lib/draft";
 import { updateLine } from "@/lib/draftStore";
 import {
   advanceFrom,
   applyAnswer,
   confirmSubjects,
+  crumbTrail,
   currentIndex,
   stepAt,
   stepFromRef,
@@ -134,9 +138,22 @@ function Interview({
     updateLine(line.id, (current) => applyAnswer(current, step, value));
   }
 
+  // A crumb is a real history entry, so browser Back undoes the jump. Any
+  // pending edit goes with it: it pins the interview to one screen, and
+  // somebody navigating the trail is done with that screen.
+  function go(to: number) {
+    window.history.pushState(null, "", `?step=${to}`);
+    if (line.pendingEdit !== null) {
+      updateLine(line.id, (current) => setPendingEdit(current, null));
+    }
+  }
+
+  const trail = crumbTrail(line, step);
+
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-10">
       <StatusStrip line={line} />
+      <StepTrail groups={trail} onGo={go} />
 
       <div
         ref={heading}
@@ -148,7 +165,13 @@ function Interview({
             position, and without this React reuses the form state: the second
             ancestor's screen opens showing the first one's birth date, already
             filled in and looking like an answer. */}
-        <StepBody key={key} line={line} step={step} onAnswer={answer} />
+        <StepBody
+          key={key}
+          line={line}
+          step={step}
+          hasTrail={trail.length > 0}
+          onAnswer={answer}
+        />
       </div>
 
       {step.kind === "done" ? null : (
@@ -169,10 +192,13 @@ function Interview({
 function StepBody({
   line,
   step,
+  hasTrail,
   onAnswer,
 }: {
   line: LineDraft;
   step: Step;
+  /** Whether the last screen can point at a trail above it, or has none to name. */
+  hasTrail: boolean;
   onAnswer: (value: AnswerValue) => void;
 }) {
   switch (step.kind) {
@@ -219,11 +245,11 @@ function StepBody({
     }
 
     case "done":
-      return <Done />;
+      return <Done hasTrail={hasTrail} />;
   }
 }
 
-function Done() {
+function Done({ hasTrail }: { hasTrail: boolean }) {
   return (
     <div>
       <h1 className="text-2xl font-semibold tracking-tight">
@@ -233,6 +259,12 @@ function Done() {
         Nothing left to ask that could change it. The result shows every
         generation, the paragraph that applies to each, what the answer rests on,
         and what is still unknown.
+      </p>
+      <p className="mt-3 leading-7 text-muted">
+        Nothing is closed off.{" "}
+        {hasTrail
+          ? "Every answer you gave is in the trail above, and the result has a control beside anything it assumed or could not settle."
+          : "The result has a control beside anything it assumed or could not settle."}
       </p>
       <Link href="/check/result" className={buttonClasses("primary", "mt-8")}>
         See the result

@@ -14,10 +14,17 @@
  * it as an assumption, honestly, and the results page badges it "you confirmed
  * this" rather than "we assumed this". That distinction is worth having, and it
  * is also what makes this pass terminate.
+ *
+ * **Coming back to the screen shows the same list, not an empty one.** The
+ * screen used to hide anything already in `acceptedDefaults`, which is right
+ * once and wrong forever after: having said "none of these happened", the whole
+ * list vanished, and a user returning to correct one of them was told there was
+ * nothing here to confirm. `acceptedDefaults` is what stops the interview
+ * *putting* the screen again, which is a different thing from what the screen
+ * shows when someone asks for it.
  */
 
 import { useId, useState } from "react";
-import { FieldError } from "./fields";
 import { buttonClasses } from "@/components/button";
 import type { Assumption, FactId } from "@/lib/c3";
 import { questionFor } from "@/lib/c3/facts";
@@ -38,19 +45,17 @@ export function ConfirmStep({
   onAnswer: (value: AnswerValue) => void;
 }) {
   const id = useId();
-  const outstanding = assumptions.filter(
-    (assumption) =>
-      !person.acceptedDefaults.includes(assumption.factId as FactId),
-  );
+  // Every box starts clear, on a first visit and on a return alike. Ticking one
+  // sets the fact, and a fact is no longer an assumption, so a corrected item
+  // leaves this list altogether and is edited from its own screen in the trail.
+  // Nothing that is still here has ever been ticked.
   const [corrections, setCorrections] = useState<Record<string, boolean>>({});
-  const [submitted, setSubmitted] = useState(false);
 
   const who = midSentence(addressOf(line, person));
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
-    setSubmitted(true);
-    const confirmations: Confirmation[] = outstanding.map((assumption) => {
+    const confirmations: Confirmation[] = assumptions.map((assumption) => {
       const factId = assumption.factId as FactId;
       return {
         factId,
@@ -62,6 +67,30 @@ export function ConfirmStep({
     onAnswer({ kind: "confirm", confirmations });
   }
 
+  if (assumptions.length === 0) {
+    return (
+      <div>
+        <h1 className="text-xl font-medium leading-8 text-balance">
+          Nothing is being assumed about {who}
+        </h1>
+        <p className="mt-4 leading-7 text-muted">
+          There were things to confirm here, and an answer you have given since
+          has settled all of them. Anything the result still rests on is listed
+          on the result itself, where it can be changed.
+        </p>
+        <div className="mt-8">
+          <button
+            type="button"
+            onClick={() => onAnswer({ kind: "confirm", confirmations: [] })}
+            className={buttonClasses("primary")}
+          >
+            Carry on
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={submit} noValidate>
       <h1 className="text-xl font-medium leading-8 text-balance">
@@ -69,17 +98,18 @@ export function ConfirmStep({
       </h1>
 
       <p className="mt-4 leading-7 text-muted">
-        {outstanding.length === 1
+        {assumptions.length === 1
           ? "We assumed one thing here, and it carries the whole answer."
-          : `We assumed ${plural(outstanding.length, "thing", "things")} here, and each one of them would change your answer if we have it wrong.`}{" "}
+          : `We assumed ${plural(assumptions.length, "thing", "things")} here, and each one of them would change your answer if we have it wrong.`}{" "}
         Every one of these is rare, which is why the tool assumes it did not
         happen. Tick anything that did.
       </p>
 
       <ul className="mt-8 space-y-3">
-        {outstanding.map((assumption) => {
+        {assumptions.map((assumption) => {
           const factId = assumption.factId as FactId;
           const checked = corrections[factId] === true;
+          const settled = person.acceptedDefaults.includes(factId);
           return (
             <li key={factId}>
               {/* Grid rather than nested spans so the accessible text sits as
@@ -104,17 +134,16 @@ export function ConfirmStep({
                 <span className="col-start-2 text-sm leading-6 text-muted">
                   We assumed not. {assumption.why}
                 </span>
+                {settled ? (
+                  <span className="col-start-2 text-xs font-semibold uppercase tracking-widest text-subtle">
+                    You left this standing
+                  </span>
+                ) : null}
               </label>
             </li>
           );
         })}
       </ul>
-
-      {outstanding.length === 0 ? (
-        <p className="mt-8 leading-7 text-muted">
-          Nothing left to confirm here.
-        </p>
-      ) : null}
 
       <div className="mt-8">
         <button type="submit" className={buttonClasses("primary")}>
@@ -122,7 +151,6 @@ export function ConfirmStep({
             ? "Save these corrections"
             : "None of these happened"}
         </button>
-        {submitted ? <FieldError>{null}</FieldError> : null}
       </div>
 
       <p className="mt-3 text-sm leading-6 text-muted">

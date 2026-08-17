@@ -311,6 +311,18 @@ export function midSentence(label: string): string {
   return label;
 }
 
+/**
+ * The inverse, for a label that stands on its own rather than inside a
+ * sentence: a heading, or a row in the trail of answered questions.
+ *
+ * Only "you" needs the treatment. Everything else `addressOf` returns is either
+ * already capitalised, because `defaultLabel` wrote it, or a name somebody
+ * typed, which is theirs to capitalise as they like.
+ */
+export function sentenceStart(label: string): string {
+  return label === "you" ? "You" : label;
+}
+
 // ---------------------------------------------------------------------------
 // Completeness and conversion
 // ---------------------------------------------------------------------------

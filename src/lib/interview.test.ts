@@ -14,9 +14,11 @@ import {
 import { classifyLine, newLine, setFact } from "@/lib/draft";
 import type { LineDraft, PersonDraft } from "@/lib/draft";
 import {
+  DONE,
   advanceFrom,
   applyAnswer,
   confirmSubjects,
+  crumbTrail,
   currentIndex,
   nextStep,
   progressSummary,
@@ -328,6 +330,137 @@ describe("ordinals", () => {
     const frontier = currentIndex(line);
     // Editing something already answered leaves the frontier where it was.
     expect(advanceFrom(line, 0)).toBe(frontier);
+  });
+});
+
+describe("the trail", () => {
+  it("runs applicant first, the way the line was entered", () => {
+    // `people` is stored anchor-first because that is the order the engine
+    // wants. Nobody enters a line that way round.
+    const line = lineFromChain(gcmsChain);
+    const groups = crumbTrail(line, nextStep(line));
+    expect(groups.map((group) => group.personId)).toEqual(
+      [...line.people].reverse().map((person) => person.id),
+    );
+  });
+
+  it("calls the applicant's own row 'You'", () => {
+    const line = lineFromChain([
+      { id: "g0", birthDate: "1910-01-01", birthRegion: "outside" },
+      { id: "g1", birthDate: "1950-01-01", birthRegion: "outside" },
+    ]);
+    expect(crumbTrail(line, nextStep(line)).map((group) => group.label)).toEqual(
+      ["You", "Your parent"],
+    );
+  });
+
+  it("has nothing to show on the first screen of a new line", () => {
+    // A trail whose only entry is the screen you are looking at is furniture.
+    const line = newLine("l1", "Your line");
+    expect(crumbTrail(line, nextStep(line))).toEqual([]);
+  });
+
+  it("points every crumb at the step it names", () => {
+    // The whole contract of an ordinal: it is read at render and used on the
+    // click, and in between it must not have come to mean something else.
+    for (const { name, chain } of FIXTURES) {
+      const line = lineFromChain(chain);
+      for (const group of crumbTrail(line, nextStep(line))) {
+        for (const crumb of group.crumbs) {
+          expect(stepKey(stepAt(line, crumb.index)), name).toBe(
+            stepKey(crumb.step),
+          );
+        }
+      }
+    }
+  });
+
+  it("shows where you are, and nothing that has not been asked yet", () => {
+    const line = lineFromChain(unaskedAnchorChain);
+    const crumbs = crumbTrail(line, nextStep(line)).flatMap((g) => g.crumbs);
+    const plan = stepPlan(line);
+    for (const crumb of crumbs) {
+      expect(plan[crumb.index].resolved || crumb.index === currentIndex(line)).toBe(
+        true,
+      );
+    }
+    expect(crumbs.filter((crumb) => crumb.current)).toHaveLength(1);
+    expect(crumbs.find((crumb) => crumb.current)?.step).toEqual(nextStep(line));
+  });
+
+  it("still offers a way back once the interview is done", () => {
+    // The trail is the only navigation left on the last screen: the Back
+    // button is gone and there is no next question to answer.
+    const { line } = runInterview(lineFromChain(modernAnchorChain), evasive);
+    expect(nextStep(line)).toEqual({ kind: "done" });
+    const crumbs = crumbTrail(line, DONE).flatMap((group) => group.crumbs);
+    expect(crumbs.length).toBeGreaterThan(1);
+    expect(crumbs.some((crumb) => crumb.current)).toBe(false);
+    for (const crumb of crumbs) {
+      expect(stepKey(stepAt(line, crumb.index))).toBe(stepKey(crumb.step));
+    }
+    // Including the assumptions screen, which is where somebody who wants to
+    // change their mind is most likely to be headed.
+    expect(crumbs.map((crumb) => crumb.step.kind)).toContain("confirm");
+  });
+
+  it("names a fact in a few words rather than restating the question", () => {
+    const line = setFact(
+      lineFromChain(unaskedAnchorChain),
+      "g0",
+      "ceasedBritishSubject",
+      true,
+    );
+    const labels = crumbTrail(line, nextStep(line)).flatMap((group) =>
+      group.crumbs.map((crumb) => crumb.label),
+    );
+    expect(labels).toContain("Lost British subject status");
+    for (const label of labels) {
+      expect(label).not.toContain("?");
+      expect(label.length).toBeLessThanOrEqual(30);
+    }
+  });
+});
+
+describe("going back to the confirm pass", () => {
+  /**
+   * The bug: the screen used to hide anything already in `acceptedDefaults`,
+   * so having once said "none of these happened", a user who came back to
+   * change their mind was told there was nothing left to confirm. Accepting a
+   * default stops the interview *putting* the screen; it must not empty it.
+   */
+  function confirmSteps(line: LineDraft): Step[] {
+    return stepQueue(line).filter((step) => step.kind === "confirm");
+  }
+
+  it("still has every assumption to show after they were left standing", () => {
+    const { line } = runInterview(lineFromChain(modernAnchorChain), evasive);
+    const steps = confirmSteps(line);
+    expect(steps.length).toBeGreaterThan(0);
+    for (const step of steps) {
+      expect(confirmSubjects(line, step).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("takes a correction on the second visit", () => {
+    const { line } = runInterview(lineFromChain(modernAnchorChain), evasive);
+    const step = confirmSteps(line)[0];
+    const factId = confirmSubjects(line, step)[0].factId as FactId;
+    const person = line.people.find(
+      (candidate) => candidate.id === (step as { personId: string }).personId,
+    );
+    expect(person?.acceptedDefaults).toContain(factId);
+
+    const corrected = applyAnswer(line, step, {
+      kind: "confirm",
+      confirmations: [{ factId, correction: true }],
+    });
+    const after = corrected.people.find(
+      (candidate) => candidate.id === person?.id,
+    );
+    expect(after?.facts[factId]).toBe(true);
+    // The correction is an answer now, not an assumption left standing.
+    expect(after?.acceptedDefaults).not.toContain(factId);
   });
 });
 
