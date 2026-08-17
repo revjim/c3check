@@ -9,7 +9,7 @@ export function Header() {
           href="/"
           className="flex items-center gap-2.5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
         >
-          <Logo className="h-6 w-6 text-brand" />
+          <Logo className="h-7 w-7 text-brand" />
           <span className="text-lg font-semibold tracking-tight">c3check</span>
         </Link>
         <nav>

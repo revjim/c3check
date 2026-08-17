@@ -1,14 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- The same mark as src/components/Logo.tsx; see the note there before
+       editing. A favicon cannot read the page's CSS variables, so the two
+       token values it needs are inlined and flipped by media query. -->
   <style>
-    path { fill: #ea580c; stroke: #ea580c; }
+    .leaf { fill: #ea580c; stroke: #ea580c; }
+    .tree { stroke: #ffffff; }
+    .node { fill: #ffffff; }
     @media (prefers-color-scheme: dark) {
-      path { fill: #f97316; stroke: #f97316; }
+      .leaf { fill: #f97316; stroke: #f97316; }
+      .tree { stroke: #09090b; }
+      .node { fill: #09090b; }
     }
   </style>
   <path
-    d="M16 2L17.8 9.8L23.2 7.2L21.8 13.2L29 12L23 16.8L25.5 21L16 22.6L6.5 21L9 16.8L3 12L10.2 13.2L8.8 7.2L14.2 9.8Z"
-    stroke-width="1.4"
+    class="leaf"
+    stroke-width="0.5"
     stroke-linejoin="round"
+    d="M32 6.5L38.35 17.95L43.93 15.45L41.81 32.95L50.09 25.06L51.53 29.49L61.15 27.57L58.26 37.77L62.02 40.17L47.29 52.96L48.54 57.48L15.46 57.48L16.71 52.96L1.98 40.17L5.74 37.77L2.85 27.57L12.47 29.49L13.91 25.06L22.19 32.95L20.07 15.45L25.65 17.95Z"
   />
-  <path d="M16 20.5V29.4" stroke-width="2.2" stroke-linecap="round" fill="none" />
+  <g class="tree" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke-width="2.9" stroke-linecap="butt" d="M32 51.1V57.8" />
+    <path stroke-width="1.6" d="M32 15.4V54.1" />
+    <path
+      stroke-width="1.6"
+      d="M32 54.6C31 50.1 27.6 46.1 22.6 42.7C20.2 41.4 15 40.9 8.6 40.9M32 54.6C33 50.1 36.4 46.1 41.4 42.7C43.8 41.4 49 40.9 55.4 40.9"
+    />
+    <path
+      stroke-width="1.25"
+      d="M24.6 21.9C25.8 24.7 27.7 27.4 31.6 32.4M39.4 21.9C38.2 24.7 36.3 27.4 32.4 32.4M8.4 32.5L19 40.9M55.6 32.5L45 40.9"
+    />
+    <path
+      stroke-width="0.85"
+      d="M16 31.3L18.3 40M48 31.3L45.7 40M25.6 34.3C25.6 36.5 27.6 38.5 31.8 41M38.4 34.3C38.4 36.5 36.4 38.5 32.2 41M24.4 44.7C21.5 46.1 18.5 46.6 15.7 46.5M39.6 44.7C42.5 46.1 45.5 46.6 48.3 46.5"
+    />
+  </g>
+  <g class="node">
+    <circle cx="32" cy="13.9" r="1.85" />
+    <circle cx="24.2" cy="21.2" r="1.85" />
+    <circle cx="39.8" cy="21.2" r="1.85" />
+    <circle cx="7.8" cy="32.2" r="1.85" />
+    <circle cx="56.2" cy="32.2" r="1.85" />
+    <circle cx="7.8" cy="40.85" r="1.85" />
+    <circle cx="56.2" cy="40.85" r="1.85" />
+  </g>
 </svg>
