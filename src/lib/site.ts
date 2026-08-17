@@ -27,7 +27,7 @@ export const CONSENT_KEY = "c3check.consent.v1";
 export const DRAFT_KEY = "c3check.draft.v1";
 
 /** Last substantive revision of /terms and /privacy. */
-export const POLICY_UPDATED = "16 August 2026";
+export const POLICY_UPDATED = "17 August 2026";
 
 /**
  * Shown at the foot of a printed report, which leaves the site and loses the

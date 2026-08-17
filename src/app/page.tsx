@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/button";
+import { CoffeeFrame } from "@/components/CoffeeFrame";
 import { ACT_AS_OF } from "@/lib/sources";
 
 const STEPS = [
@@ -85,6 +86,13 @@ export default function Home() {
           Where an answer turns on a point nobody can currently resolve,
           c3check flags the row rather than guessing. Rules are encoded against
           the <em>Citizenship Act</em> as amended {ACT_AS_OF}.
+        </p>
+      </div>
+
+      <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <CoffeeFrame />
+        <p className="text-sm text-subtle">
+          No ads, no account, nothing for sale. This is the tip jar.
         </p>
       </div>
     </div>

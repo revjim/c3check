@@ -145,7 +145,41 @@ export default function PrivacyPage() {
         <p>
           c3check links out to the <em>Citizenship Act</em>, to court decisions,
           and to IRCC guidance. Those sites have their own privacy practices and
-          this policy does not cover them.
+          this policy does not cover them. They are links and nothing more: no
+          code from any of them runs on this site, so none of them can see
+          anything you have entered here.
+        </p>
+      </Section>
+
+      <Section title="The donation button">
+        <p>
+          The yellow &quot;Buy me a coffee&quot; button on the home page and at
+          the foot of a result is the widget Buy Me a Coffee supplies, which
+          means it is a piece of their code, loaded from their servers, running
+          in your browser. Buy Me a Coffee can therefore see that a browser at
+          your IP address loaded the button, and the fonts it uses are requested
+          from Google, so Google can see the same thing.
+        </p>
+        <p>
+          <strong className="font-medium text-foreground">
+            It cannot see anything about your family line.
+          </strong>{" "}
+          The button is not on the page itself. It is loaded inside a sandboxed
+          frame, from a small separate document that contains nothing but the
+          button, and that frame is deliberately given no access to this site&apos;s
+          own origin. Concretely: code inside it cannot read the{" "}
+          <code className="font-mono text-sm">localStorage</code> keys listed
+          above, cannot read the page around it, and cannot store anything of its
+          own that this policy would then have to account for. Clicking it opens
+          buymeacoffee.com in a new tab, which is where anything you choose to
+          pay is handled; nothing about payment happens here.
+        </p>
+        <p>
+          That isolation is one attribute on one element, so it is enforced by a
+          test rather than by memory. The test suite fails the build if any frame
+          on this site loses its sandbox, if any frame is granted this
+          origin, or if a third-party script appears anywhere in the site&apos;s
+          own code.
         </p>
       </Section>
 
