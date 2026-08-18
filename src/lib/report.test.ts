@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyChain } from "@/lib/c3";
+import { classifyChain, ruleTitleFor } from "@/lib/c3";
 import type { ChainResult, Person } from "@/lib/c3";
 import {
   femaleAnchorChain,
@@ -13,6 +13,8 @@ import {
   withFacts,
 } from "@/lib/c3/fixtures";
 import {
+  chainRows,
+  descendantNote,
   documentChecklist,
   groupAssumptions,
   reportText,
@@ -155,6 +157,131 @@ describe("reportText", () => {
     expect(reportText(classifyChain(modernAnchorChain))).not.toContain(
       "Worked out on:",
     );
+  });
+});
+
+describe("chainRows", () => {
+  it("gives one row per person, in chain order, compiling nothing", () => {
+    const result = classifyChain(gcmsChain);
+    const rows = chainRows(result);
+    expect(rows.map((row) => row.personId)).toEqual(
+      result.statuses.map((status) => status.personId),
+    );
+    expect(rows.map((row) => row.person)).toEqual([
+      "G0 (G0)",
+      "G1 (G1)",
+      "G2 (G2)",
+      "G3 (G3)",
+      "G4 (G4)",
+    ]);
+    expect(rows.map((row) => row.paragraph)).toEqual([
+      "3(1)(k)",
+      "3(1)(o)",
+      "3(1)(q)",
+      "3(1)(q)",
+      "3(1)(g)",
+    ]);
+  });
+
+  it("marks exactly one row as the applicant, wherever they are", () => {
+    for (const { name, chain } of FIXTURES) {
+      const rows = chainRows(classifyChain(chain));
+      expect(rows.filter((row) => row.isApplicant), name).toHaveLength(1);
+      expect(rows[rows.length - 1].isApplicant, name).toBe(true);
+    }
+    // With a child in the line, the marked row is no longer the last one.
+    const withChild = classifyChain(postCifChain({ presenceDaysInCanada: 1095 }), {
+      applicantIndex: 1,
+    });
+    const rows = chainRows(withChild);
+    expect(rows.map((row) => row.isApplicant)).toEqual([false, true, false]);
+  });
+
+  it("says why in the paragraph's own words", () => {
+    const rows = chainRows(classifyChain(gcmsChain));
+    // The reason for a classification is what the paragraph says, so the column
+    // quotes the rule table rather than restating it in different words.
+    expect(rows[0].why).toBe(ruleTitleFor("k"));
+    expect(rows[0].why.length).toBeGreaterThan(20);
+  });
+
+  it("names what set the effective date, or why there is none", () => {
+    const rows = chainRows(classifyChain(gcmsChain));
+    expect(rows[0].citizenAsOf).toContain("1 January 1947");
+    expect(rows[0].citizenAsOf).toContain("via 3(7)");
+    // Where a subsection of 3(7) sets the date, that subsection is what the
+    // column names, even for a paragraph whose date is the birth itself.
+    expect(rows[4].citizenAsOf).toBe("8 August 1970, via 3(7)(e)");
+
+    const undetermined = chainRows(classifyChain(unaskedAnchorChain));
+    expect(undetermined[0].citizenAsOf).toBe("Not answerable yet");
+    // Never anything that reads like a denial for a person who is simply not
+    // answerable yet.
+    for (const row of undetermined) {
+      expect(row.citizenAsOf.toLowerCase()).not.toContain("not a citizen");
+    }
+  });
+
+  it("never claims a paragraph, or a failure, for a 1946-Act citizen", () => {
+    const result = classifyChain([
+      {
+        id: "g0",
+        label: "G0",
+        birthDate: "1900-01-01",
+        birthRegion: "canada",
+        deathDate: "1960-01-01",
+        facts: { ceasedBritishSubject: false },
+      },
+    ]);
+    const [row] = chainRows(result);
+    expect(row.paragraphIsProvision).toBe(false);
+    expect(row.paragraph).toBe("Canadian Citizenship Act, 1946");
+    expect(row.citizenAsOf).toContain("1 January 1947");
+    expect(row.why.toLowerCase()).not.toContain("no paragraph of section 3(1) describes");
+  });
+
+  it("marks a precedence loss and a halt rather than hiding them", () => {
+    const overlap = chainRows(classifyChain(overlapChain));
+    expect(overlap[1].paragraph).toBe("3(1)(o)");
+    expect(overlap[1].note).toContain("also described by paragraph 3(1)(q)");
+    expect(overlap[1].note).toContain("lost on precedence");
+
+    const stopped = chainRows(
+      classifyChain(withFacts(gcmsChain, "g2", { adopted: true })),
+    );
+    expect(stopped[2].note).toContain("stops here");
+    expect(stopped[2].paragraph).toBe("Not worked out");
+  });
+});
+
+describe("descendantNote", () => {
+  it("says nothing at all for a line that ends at the applicant", () => {
+    for (const { name, chain } of FIXTURES) {
+      expect(descendantNote(classifyChain(chain)), name).toBeNull();
+    }
+  });
+
+  it("speaks up where a descendant's answer differs from the applicant's", () => {
+    const result = classifyChain(postCifChain({ presenceDaysInCanada: 40 }), {
+      applicantIndex: 1,
+    });
+    expect(result.statuses[2].outcome).toBe("fails");
+    expect(descendantNote(result)).toBe("G2 does not come out the same way as G1.");
+  });
+
+  it("stays quiet where the descendant lands in the same place", () => {
+    // The child of a (b) born before the coming into force is a (b) too, and
+    // repeating the headline at somebody who has read it is noise.
+    const result = classifyChain(
+      [
+        { id: "g0", label: "G0", birthDate: "1960-05-04", birthRegion: "canada" },
+        { id: "g1", label: "G1", birthDate: "1990-01-20", birthRegion: "outside" },
+        { id: "g2", label: "G2", birthDate: "2015-01-20", birthRegion: "outside" },
+      ],
+      { applicantIndex: 1 },
+    );
+    expect(result.statuses.map((s) => s.paragraph)).toEqual(["d", "b", "b"]);
+    expect(descendantNote(result)).toBeNull();
   });
 });
 

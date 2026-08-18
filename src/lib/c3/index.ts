@@ -43,7 +43,7 @@ export {
 export type { FactEntry } from "./facts";
 export { ALL_ORG_IDS, PROCESSING_PAUSE_ORG_ID, orgIdFor } from "./orgIds";
 export { TIE_BREAK_ORDER, outranks, resolvePrecedence } from "./precedence";
-export { RULES } from "./rules";
+export { RULES, ruleTitleFor } from "./rules";
 export type { Rule, RuleContext, RuleVerdict } from "./rules";
 export { CLASSIFIED_PARAGRAPHS, provisionOf } from "./types";
 export type {

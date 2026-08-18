@@ -11,7 +11,7 @@
  * serialises to the same string and the tests never have to pin a clock.
  */
 
-import { provisionOf } from "@/lib/c3";
+import { provisionOf, ruleTitleFor } from "@/lib/c3";
 import type {
   Assumption,
   ChainResult,
@@ -20,7 +20,7 @@ import type {
 } from "@/lib/c3";
 import { ACT_AS_OF, sourceById } from "@/lib/sources";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { formatDate, humaniseDates } from "@/lib/format";
+import { formatDate, humaniseDates, plural } from "@/lib/format";
 
 // ---------------------------------------------------------------------------
 // The documents to go and find
@@ -78,6 +78,166 @@ export function documentChecklist(result: ChainResult): ChecklistGroup[] {
   }
 
   return groups;
+}
+
+// ---------------------------------------------------------------------------
+// The chain, as one row per generation
+// ---------------------------------------------------------------------------
+
+/**
+ * One row of the chain summary: the compact view of the whole line.
+ *
+ * Built here rather than in the component because there are two renderings of
+ * the same table, the one on the results page and the one in the markdown
+ * export, and two hand-written versions of the same four columns would drift
+ * apart on the first change to either.
+ *
+ * No generations are compiled, merged or hidden. One row per person in
+ * `statuses` order, which is oldest first, because that is the order the
+ * reasoning runs in and the order an officer writes it up in.
+ */
+export type ChainRow = {
+  personId: string;
+  /** "Your grandmother (G2)". The G number is the position in the chain. */
+  person: string;
+  /** Marks the row the answer is about. Everything below it is a descendant. */
+  isApplicant: boolean;
+  /** "3(1)(q)", or a phrase for someone no current paragraph describes. */
+  paragraph: string;
+  /** Whether `paragraph` is a citation, and so wants a mono face and no wrap. */
+  paragraphIsProvision: boolean;
+  /** A date, with what set it, or why there is no date. */
+  citizenAsOf: string;
+  /** The paragraph's own words, or why no paragraph applies. */
+  why: string;
+  /** Something the row cannot say on its own: a precedence loss, a halt. */
+  note: string | null;
+};
+
+export function chainRows(result: ChainResult): ChainRow[] {
+  return result.statuses.map((status, index) => ({
+    personId: status.personId,
+    person: `${status.label} (G${index})`,
+    isApplicant: index === result.applicantIndex,
+    paragraph:
+      status.paragraph === null
+        ? PARAGRAPH_NONE[status.outcome]
+        : provisionOf(status.paragraph),
+    paragraphIsProvision: status.paragraph !== null,
+    citizenAsOf: citizenAsOf(status),
+    why: whyOf(status),
+    note: noteOf(status),
+  }));
+}
+
+/**
+ * What goes in the paragraph column for someone no paragraph is assigned to.
+ *
+ * `qualifies` with no paragraph is real and must never read as a failure:
+ * somebody who became a citizen on 1 January 1947 under the 1946 Act and died
+ * before 1977 is a citizen, and a valid (q) parent, and no paragraph of section
+ * 3(1) as it now reads describes them, because none needs to.
+ */
+const PARAGRAPH_NONE: Record<Status["outcome"], string> = {
+  qualifies: "Canadian Citizenship Act, 1946",
+  fails: "None",
+  undetermined: "Not answerable yet",
+  stopped: "Not worked out",
+  incomplete: "Nothing to reason from",
+};
+
+function citizenAsOf(status: Status): string {
+  if (status.effectiveDate === null) {
+    switch (status.outcome) {
+      case "fails":
+        return "No paragraph applies";
+      case "undetermined":
+        return "Not answerable yet";
+      case "stopped":
+        return "This tool stops here";
+      default:
+        // A paragraph whose effective date runs from ceasing to be a citizen,
+        // which is (f), (h), (i) or (j), and those are detected and stopped.
+        return "Set by an event rather than a date";
+    }
+  }
+  const date = formatDate(status.effectiveDate);
+  if (status.deemingProvision !== null) {
+    return `${date}, via ${status.deemingProvision}`;
+  }
+  return status.effectiveDate === status.birthDate ? `${date}, at birth` : date;
+}
+
+/**
+ * The reason, in the paragraph's own words where there is a paragraph.
+ *
+ * Never truncated and never paraphrased down to a phrase. The whole value of
+ * this column is that it is quotable, and the same rule the plain-text report
+ * follows applies here: an edited `because` quietly changes what the reasoning
+ * says.
+ */
+function whyOf(status: Status): string {
+  if (status.paragraph !== null) {
+    return ruleTitleFor(status.paragraph) ?? outcomeWord(status);
+  }
+  switch (status.outcome) {
+    case "qualifies":
+      return "already a citizen under the Canadian Citizenship Act then in force, so no paragraph of section 3(1) as it now reads needs to describe them";
+    case "undetermined":
+      return status.missing.length > 0
+        ? `${plural(status.missing.length, "fact", "facts")} this generation turns on has not been established`
+        : "an earlier generation is unresolved, so this one cannot be worked out either";
+    case "stopped":
+      return status.stopReason?.title ?? "this tool stops short of classifying them";
+    default:
+      return "no paragraph of section 3(1) describes them on the facts given";
+  }
+}
+
+/**
+ * "Your daughter's answer is not the same as yours", or null.
+ *
+ * The headline is about the applicant, and stays that way: moving it onto the
+ * youngest person in the line would silently change what the page answers for
+ * everybody who has no descendants. But somebody who has just added a child did
+ * it to find out about the child, and a headline that says "you are a citizen
+ * under 3(1)(g)" while the child's row says something else has answered the
+ * wrong question by omission. So where a descendant's answer differs, the
+ * headline says so in a sentence and points at the row that carries it.
+ */
+export function descendantNote(result: ChainResult): string | null {
+  const later = result.statuses.slice(result.applicantIndex + 1);
+  const differs = later.filter(
+    (status) =>
+      status.outcome !== result.applicant.outcome ||
+      status.paragraph !== result.applicant.paragraph,
+  );
+  if (differs.length === 0) return null;
+  const names = differs.map((status) => status.label);
+  return `${listOf(names)} ${
+    names.length === 1 ? "does" : "do"
+  } not come out the same way as ${result.applicant.label}.`;
+}
+
+/** "A", "A and B", "A, B and C". */
+function listOf(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+function noteOf(status: Status): string | null {
+  const parts: string[] = [];
+  if (status.alternatives.length > 0) {
+    parts.push(
+      `also described by paragraph ${status.alternatives
+        .map((paragraph) => provisionOf(paragraph))
+        .join(" and ")}, which lost on precedence`,
+    );
+  }
+  if (status.stopReason !== null) {
+    parts.push(`this tool stops here: ${status.stopReason.provision}`);
+  }
+  return parts.length === 0 ? null : parts.join("; ");
 }
 
 // ---------------------------------------------------------------------------

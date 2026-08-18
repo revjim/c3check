@@ -107,6 +107,20 @@ export type Rule = {
   test: (ctx: RuleContext) => RuleVerdict;
 };
 
+/**
+ * How a paragraph reads, in one line, or null for one this version does not
+ * classify under.
+ *
+ * The reason for a classification is the paragraph's own words, and the table
+ * already carries them: this exists so the chain summary and the markdown export
+ * can say *why* a row says what it says without a second set of prose written to
+ * mean the same thing. Lives here rather than beside `provisionOf` in `types.ts`,
+ * which nothing in this directory is allowed to import from.
+ */
+export function ruleTitleFor(paragraph: Paragraph): string | null {
+  return RULES.find((rule) => rule.paragraph === paragraph)?.title ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // Shared predicates
 // ---------------------------------------------------------------------------

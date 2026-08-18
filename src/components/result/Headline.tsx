@@ -25,7 +25,7 @@ import { provisionOf } from "@/lib/c3";
 import type { ChainResult } from "@/lib/c3";
 import { buttonClasses } from "@/components/button";
 import { formatDate, humaniseDates } from "@/lib/format";
-import { confidenceWord, verdictWord } from "@/lib/report";
+import { confidenceWord, descendantNote, verdictWord } from "@/lib/report";
 
 export function Headline({
   result,
@@ -37,6 +37,10 @@ export function Headline({
 }) {
   const { headline } = result;
   const emphatic = headline.verdict === "qualifies";
+  // Stays about the applicant even where a child's answer differs; see the note
+  // on `descendantNote`, and the one in `interview.ts` on why the subject of the
+  // report does not move when a descendant is added.
+  const descendants = descendantNote(result);
 
   return (
     <section
@@ -77,6 +81,16 @@ export function Headline({
       <p className="mt-5 text-sm leading-6 text-muted">
         Confidence: {confidenceWord(headline.confidence)}.
       </p>
+
+      {descendants === null ? null : (
+        <p className="mt-4 text-sm leading-6 text-muted">
+          {humaniseDates(descendants)}{" "}
+          <a href="#chain" className="text-brand underline underline-offset-4">
+            The full chain
+          </a>{" "}
+          gives every generation its own paragraph and effective date.
+        </p>
+      )}
 
       {headline.verdict === "incomplete" ? (
         <Link href="/check/interview" className={buttonClasses("primary", "mt-6")}>

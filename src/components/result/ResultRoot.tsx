@@ -17,6 +17,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Advisories } from "./Advisories";
+import { ChainTable } from "./ChainTable";
 import { Headline } from "./Headline";
 import { PersonCard } from "./PersonCard";
 import { ReportActions } from "./ReportActions";
@@ -150,6 +151,8 @@ function Report({ line }: { line: LineDraft }) {
       <div className="mt-8">
         <Headline result={result} stopped={stop !== null} />
       </div>
+
+      <ChainTable result={result} />
 
       <Advisories
         result={result}
