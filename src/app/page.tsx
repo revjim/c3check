@@ -5,11 +5,11 @@ import { ACT_AS_OF } from "@/lib/sources";
 const STEPS = [
   {
     title: "Start with yourself",
-    body: "Your birth date and where you were born. Nothing else to begin with.",
+    body: "Your birth date and where you were born. Or upload a GEDCOM file (optional) to speed things along. Nothing else to begin with.",
   },
   {
     title: "Work back one generation at a time",
-    body: "Your parent, then theirs. We stop as soon as we reach an ancestor born in Canada.",
+    body: "Your parent, then theirs. The app will ask the right questions to help you discover the C3 status that applies to each generation. We stop as soon as we reach an ancestor born in Canada.",
   },
   {
     title: "Answer only what matters",
