@@ -44,6 +44,7 @@ import {
 import type { LineDraft } from "@/lib/draft";
 import { updateLine } from "@/lib/draftStore";
 import { formatDate, humaniseDates } from "@/lib/format";
+import { reportMarkdown } from "@/lib/markdown";
 import { groupAssumptions, reportText } from "@/lib/report";
 import { ACT_AS_OF } from "@/lib/sources";
 import { SITE_URL } from "@/lib/site";
@@ -144,6 +145,15 @@ function Report({ line }: { line: LineDraft }) {
             generatedOn: formatDate(new Date().toISOString().slice(0, 10)),
           })
         }
+        markdownFor={() =>
+          reportMarkdown(result, {
+            // The line itself, not only its name: the document carries the
+            // interview in a fenced block, which is what makes it readable back.
+            line,
+            generatedOn: formatDate(new Date().toISOString().slice(0, 10)),
+          })
+        }
+        fileName={fileNameFor(line.name)}
       />
 
       {stop === null ? null : <StopBlock line={line} result={result} />}
@@ -252,6 +262,22 @@ function Report({ line }: { line: LineDraft }) {
       </footer>
     </div>
   );
+}
+
+/**
+ * What the downloaded file is called.
+ *
+ * A line name is whatever somebody typed, so it is reduced to ASCII letters,
+ * digits and dashes rather than trusted: it becomes a file name on their disk,
+ * and possibly an attachment name in somebody else's mail client.
+ */
+function fileNameFor(lineName: string): string {
+  const slug = lineName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+  return `c3check-${slug === "" ? "line" : slug}.md`;
 }
 
 /**

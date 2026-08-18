@@ -1,7 +1,13 @@
 "use client";
 
 /**
- * Print, and copy as plain text.
+ * Print, copy as plain text, and download as markdown.
+ *
+ * The download is the only way work leaves this device on purpose, and the only
+ * way it comes back: the file carries the interview in a fenced block, and
+ * /check/import reads it. It is built here rather than on a server because there
+ * is no server, so it is a Blob, an object URL, and a synthetic click, with the
+ * URL revoked immediately afterwards.
  *
  * **The `beforeprint` handler is not decoration.** A closed `<details>` does
  * not print its contents, and there is no reliable way to force one open from
@@ -21,10 +27,16 @@ import { buttonClasses } from "@/components/button";
 
 export function ReportActions({
   reportFor,
+  markdownFor,
+  fileName,
   scopeId,
 }: {
   /** Built on demand, so the text is never stale against the page. */
   reportFor: () => string;
+  /** The same, as a markdown document carrying the interview. */
+  markdownFor: () => string;
+  /** What the downloaded file is called. ASCII, and ending in `.md`. */
+  fileName: string;
   /** The id of the element whose `<details>` should be opened for printing. */
   scopeId: string;
 }) {
@@ -83,25 +95,57 @@ export function ReportActions({
     timer.current = setTimeout(() => setCopied("idle"), 4000);
   }
 
+  function download() {
+    const blob = new Blob([markdownFor()], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    // Appended before the click and removed after it: a detached anchor's click
+    // is ignored in some browsers, and leaving it in the document would leave a
+    // stray element inside the printable region.
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
-    <div className="mt-8 flex flex-wrap items-center gap-3 print:hidden">
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className={buttonClasses("secondary")}
-      >
-        Print or save as PDF
-      </button>
-      <button type="button" onClick={copy} className={buttonClasses("secondary")}>
-        Copy as plain text
-      </button>
-      <span aria-live="polite" className="text-sm text-muted">
-        {copied === "done"
-          ? "Copied."
-          : copied === "failed"
-            ? "Could not reach the clipboard. Print to a PDF instead."
-            : null}
-      </span>
+    <div className="mt-8 print:hidden">
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className={buttonClasses("secondary")}
+        >
+          Print or save as PDF
+        </button>
+        <button
+          type="button"
+          onClick={download}
+          className={buttonClasses("secondary")}
+        >
+          Download as markdown
+        </button>
+        <button type="button" onClick={copy} className={buttonClasses("secondary")}>
+          Copy as plain text
+        </button>
+        <span aria-live="polite" className="text-sm text-muted">
+          {copied === "done"
+            ? "Copied."
+            : copied === "failed"
+              ? "Could not reach the clipboard. Print to a PDF instead."
+              : null}
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-subtle">
+        The download is a plain text file you can read, and the one thing here
+        that comes back: upload it again and every answer is restored. It holds
+        every name, date and place you entered, so it is as private as wherever
+        you keep it.
+      </p>
     </div>
   );
 }
