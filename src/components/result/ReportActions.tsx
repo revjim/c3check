@@ -22,6 +22,7 @@
  * still use.
  */
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { buttonClasses } from "@/components/button";
 
@@ -140,12 +141,36 @@ export function ReportActions({
               : null}
         </span>
       </div>
-      <p className="mt-3 text-sm leading-6 text-subtle">
-        The download is a plain text file you can read, and the one thing here
-        that comes back: upload it again and every answer is restored. It holds
-        every name, date and place you entered, so it is as private as wherever
-        you keep it.
-      </p>
+      <div className="mt-3 space-y-2 text-sm leading-6 text-subtle">
+        <p>
+          The download is a markdown file, saved as{" "}
+          <span className="font-mono break-all">{fileName}</span>. Markdown is
+          ordinary
+          text: it opens in any editor, notes app or mail client, and it reads
+          as the report on this page, with every answer you gave written out in
+          a fenced block at the foot.
+        </p>
+        <p>
+          That block is what makes it the one thing here that comes back. Bring
+          the file to{" "}
+          <Link
+            href="/check/import"
+            className="text-brand underline underline-offset-4"
+          >
+            start from a file
+          </Link>{" "}
+          and the whole interview is restored: you land straight back on this
+          result, free to change an answer, carry the line further, or start
+          over from what you already entered instead of typing it again. A
+          printout and the copied text are for reading only; this file is the
+          one that can be read back in, so treat it as your save file.
+        </p>
+        <p>
+          It holds every name, date and place you entered, for you and for your
+          relatives. Nothing is uploaded to produce it, and from then on it is
+          as private as wherever you keep it.
+        </p>
+      </div>
     </div>
   );
 }
