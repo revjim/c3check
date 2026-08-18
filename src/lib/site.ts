@@ -8,6 +8,13 @@ export const REPO_URL = "https://github.com/revjim/c3check";
 export const ISSUES_URL = `${REPO_URL}/issues`;
 
 /**
+ * The author, as the community this is for knows them: the footer credit signs
+ * the tool with a Reddit handle rather than a name, because r/LostCanadians is
+ * where the questions this answers are actually being asked.
+ */
+export const AUTHOR_REDDIT_URL = "https://www.reddit.com/user/revjim/";
+
+/**
  * Bumping this invalidates stored acceptance and re-prompts every user, so
  * only bump it when the terms change in a way that matters.
  */
@@ -28,6 +35,18 @@ export const DRAFT_KEY = "c3check.draft.v1";
 
 /** Last substantive revision of /terms and /privacy. */
 export const POLICY_UPDATED = "17 August 2026";
+
+/**
+ * Last substantive change to the tool itself, shown in the footer on every page.
+ *
+ * Hand-maintained, like `POLICY_UPDATED`, and for the same reason: it is a claim
+ * about whether somebody thought about the rules recently, not a build stamp. A
+ * deploy date would move on a typo fix and tell a reader nothing, and the date
+ * that matters to them is whether the encoded law has been looked at since the
+ * last time IRCC moved. So bump it when the rules, the sources, or the reasoning
+ * change; leave it alone for wording and layout.
+ */
+export const SITE_UPDATED = "18 August 2026";
 
 /**
  * Shown at the foot of a printed report, which leaves the site and loses the

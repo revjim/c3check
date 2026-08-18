@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { REPO_URL } from "@/lib/site";
+import { AUTHOR_REDDIT_URL, REPO_URL, SITE_UPDATED } from "@/lib/site";
 
 const LINKS = [
   { href: "/sources", label: "Sources" },
@@ -18,8 +18,19 @@ export function Footer() {
           </strong>{" "}
           and is not affiliated with IRCC or the Government of Canada. Verify
           any result against the primary sources and consult a licensed lawyer
-          or a CICC member before acting on it.
+          or a CICC member before acting on it. Created by{" "}
+          <a
+            href={AUTHOR_REDDIT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            /u/revjim
+          </a>{" "}
+          as a service to the lost Canadian community.
         </p>
+
+        <p className="mt-2 text-sm text-subtle">Last updated {SITE_UPDATED}</p>
 
         <nav className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           {LINKS.map(({ href, label }) => (
