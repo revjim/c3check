@@ -9,6 +9,12 @@
  * answer was reached". Somebody skimming should hit the actionable things
  * first; somebody checking the work should find every provision that was
  * considered, including the ones that did not apply.
+ *
+ * Each of these starts closed, and the heading is the control that opens it, so
+ * the whole of the report below the chain table reads as a list of what is in
+ * it. The summary always carries a count: "Still unknown" tells a reader nothing
+ * about whether it is worth opening, and "Still unknown (3)" does. See
+ * `Collapsible` for what that costs printing, and what already pays for it.
  */
 
 import type {
@@ -23,7 +29,31 @@ import { buttonClasses } from "@/components/button";
 import { humaniseDates, plural } from "@/lib/format";
 import { documentChecklist } from "@/lib/report";
 import type { AssumptionGroups } from "@/lib/report";
+import { Collapsible } from "./Collapsible";
 import { SourceLink } from "./SourceLink";
+
+/**
+ * The heading of a collapsed section, and the count that says whether it is
+ * worth opening. Shared so the five sections cannot drift apart.
+ */
+function SectionSummary({
+  id,
+  title,
+  count,
+}: {
+  id: string;
+  title: string;
+  count: string;
+}) {
+  return (
+    <>
+      <h2 id={id} className="text-lg font-semibold tracking-tight">
+        {title}
+      </h2>
+      <p className="mt-0.5 text-sm text-subtle">{count}</p>
+    </>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Uncertainty flags
@@ -40,36 +70,43 @@ export function Flags({ result }: { result: ChainResult }) {
   }
 
   return (
-    <section aria-labelledby="flags" className="mt-12">
-      <h2 id="flags" className="text-lg font-semibold tracking-tight">
-        Where this is uncertain
-      </h2>
-      <p className="mt-2 leading-7 text-muted">
-        Each of these is a point where the sources are contested, withheld, or
-        silent. The classification above follows the statute; these say where
-        somebody applying it might not.
-      </p>
+    <section aria-labelledby="flags-heading" className="mt-8 border-t border-border pt-8">
+      <Collapsible
+        summary={
+          <SectionSummary
+            id="flags-heading"
+            title="Where this is uncertain"
+            count={plural(groups.size, "point", "points")}
+          />
+        }
+      >
+        <p className="mt-4 leading-7 text-muted">
+          Each of these is a point where the sources are contested, withheld, or
+          silent. The classification above follows the statute; these say where
+          somebody applying it might not.
+        </p>
 
-      <div className="mt-6 space-y-6">
-        {[...groups.values()].map((flags) => (
-          <article
-            key={flags[0].id}
-            className="break-inside-avoid rounded-lg border border-border p-5"
-          >
-            <h3 className="font-medium">{flags[0].title}</h3>
-            <p className="mt-2 leading-7 text-muted">{humaniseDates(flags[0].detail)}</p>
-            {flags.length > 1 ? (
-              <p className="mt-2 text-sm text-subtle">
-                Flagged against {plural(flags.length, "generation", "generations")} in
-                this line.
+        <div className="mt-6 space-y-6">
+          {[...groups.values()].map((flags) => (
+            <article
+              key={flags[0].id}
+              className="break-inside-avoid rounded-lg border border-border p-5"
+            >
+              <h3 className="font-medium">{flags[0].title}</h3>
+              <p className="mt-2 leading-7 text-muted">{humaniseDates(flags[0].detail)}</p>
+              {flags.length > 1 ? (
+                <p className="mt-2 text-sm text-subtle">
+                  Flagged against {plural(flags.length, "generation", "generations")} in
+                  this line.
+                </p>
+              ) : null}
+              <p className="mt-3 text-sm text-muted">
+                <SourceLink sourceId={flags[0].sourceId} />
               </p>
-            ) : null}
-            <p className="mt-3 text-sm text-muted">
-              <SourceLink sourceId={flags[0].sourceId} />
-            </p>
-          </article>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      </Collapsible>
     </section>
   );
 }
@@ -88,97 +125,110 @@ export function Assumptions({
   onUndo: (personId: string, factId: FactId) => void;
 }) {
   const { decisive, confirmed, immaterial } = groups;
-  if (decisive.length + confirmed.length + immaterial.length === 0) return null;
+  const total = decisive.length + confirmed.length + immaterial.length;
+  if (total === 0) return null;
 
   return (
-    <section aria-labelledby="assumptions" className="mt-12">
-      <h2 id="assumptions" className="text-lg font-semibold tracking-tight">
-        What this rests on
-      </h2>
-      <p className="mt-2 leading-7 text-muted">
-        Where a fact was not established, the tool used the ordinary answer and
-        wrote it down here rather than hiding it. Everything in the first two
-        lists would change your answer if it is wrong.
-      </p>
+    <section
+      aria-labelledby="assumptions-heading"
+      className="mt-8 border-t border-border pt-8"
+    >
+      <Collapsible
+        summary={
+          <SectionSummary
+            id="assumptions-heading"
+            title="What this rests on"
+            count={`${plural(total, "assumption", "assumptions")}, ${
+              decisive.length + confirmed.length
+            } of which carry the answer`}
+          />
+        }
+      >
+        <p className="mt-4 leading-7 text-muted">
+          Where a fact was not established, the tool used the ordinary answer and
+          wrote it down here rather than hiding it. Everything in the first two
+          lists would change your answer if it is wrong.
+        </p>
 
-      {decisive.length > 0 ? (
-        <>
-          <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-subtle">
-            Assumed, and carries the answer
-          </h3>
-          <ul className="mt-4 space-y-4">
-            {decisive.map((assumption) => (
-              <AssumptionItem
-                key={keyOf(assumption)}
-                assumption={assumption}
-                badge="We assumed this"
-                action={
-                  assumption.factId === null ? null : (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onOverride(assumption.personId, assumption.factId as FactId)
-                      }
-                      className={buttonClasses("secondary", "mt-3 print:hidden")}
-                    >
-                      That is not right
-                    </button>
-                  )
-                }
-              />
-            ))}
-          </ul>
-        </>
-      ) : null}
+        {decisive.length > 0 ? (
+          <>
+            <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-subtle">
+              Assumed, and carries the answer
+            </h3>
+            <ul className="mt-4 space-y-4">
+              {decisive.map((assumption) => (
+                <AssumptionItem
+                  key={keyOf(assumption)}
+                  assumption={assumption}
+                  badge="We assumed this"
+                  action={
+                    assumption.factId === null ? null : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOverride(assumption.personId, assumption.factId as FactId)
+                        }
+                        className={buttonClasses("secondary", "mt-3 print:hidden")}
+                      >
+                        That is not right
+                      </button>
+                    )
+                  }
+                />
+              ))}
+            </ul>
+          </>
+        ) : null}
 
-      {confirmed.length > 0 ? (
-        <>
-          <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-subtle">
-            Confirmed by you, and carries the answer
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            You were shown these and left them standing. They are still
-            assumptions rather than established facts, and the documents below
-            would settle them.
-          </p>
-          <ul className="mt-4 space-y-4">
-            {confirmed.map((assumption) => (
-              <AssumptionItem
-                key={keyOf(assumption)}
-                assumption={assumption}
-                badge="You confirmed this"
-                action={
-                  assumption.factId === null ? null : (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onUndo(assumption.personId, assumption.factId as FactId)
-                      }
-                      className={buttonClasses("secondary", "mt-3 print:hidden")}
-                    >
-                      Ask me about this again
-                    </button>
-                  )
-                }
-              />
-            ))}
-          </ul>
-        </>
-      ) : null}
+        {confirmed.length > 0 ? (
+          <>
+            <h3 className="mt-8 text-sm font-semibold uppercase tracking-widest text-subtle">
+              Confirmed by you, and carries the answer
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              You were shown these and left them standing. They are still
+              assumptions rather than established facts, and the documents below
+              would settle them.
+            </p>
+            <ul className="mt-4 space-y-4">
+              {confirmed.map((assumption) => (
+                <AssumptionItem
+                  key={keyOf(assumption)}
+                  assumption={assumption}
+                  badge="You confirmed this"
+                  action={
+                    assumption.factId === null ? null : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onUndo(assumption.personId, assumption.factId as FactId)
+                        }
+                        className={buttonClasses("secondary", "mt-3 print:hidden")}
+                      >
+                        Ask me about this again
+                      </button>
+                    )
+                  }
+                />
+              ))}
+            </ul>
+          </>
+        ) : null}
 
-      {immaterial.length > 0 ? (
-        <details className="mt-8 break-inside-avoid rounded-lg border border-border bg-surface p-5">
-          <summary className="cursor-pointer font-medium">
-            Things assumed that did not change the answer (
-            {immaterial.length})
-          </summary>
-          <ul className="mt-4 space-y-3 text-sm leading-6 text-muted">
-            {immaterial.map((assumption) => (
-              <li key={keyOf(assumption)}>{humaniseDates(assumption.statement)}</li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
+        {immaterial.length > 0 ? (
+          <details className="mt-8 break-inside-avoid rounded-lg border border-border bg-surface p-5">
+            <summary className="cursor-pointer font-medium">
+              Things assumed that did not change the answer (
+              {immaterial.length})
+            </summary>
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-muted">
+              {immaterial.map((assumption) => (
+                <li key={keyOf(assumption)}>{humaniseDates(assumption.statement)}</li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+      </Collapsible>
     </section>
   );
 }
@@ -234,46 +284,60 @@ export function StillUnknown({
   if (missing.length === 0) return null;
 
   return (
-    <section aria-labelledby="unknown" className="mt-12">
-      <h2 id="unknown" className="text-lg font-semibold tracking-tight">
-        Still unknown
-      </h2>
-      <p className="mt-2 leading-7 text-muted">
-        These have no safe default, so the tool declines to guess at them. Until
-        one is settled, the generation it belongs to is not answerable rather
-        than answered either way.
-      </p>
+    <section
+      aria-labelledby="unknown-heading"
+      className="mt-8 border-t border-border pt-8"
+    >
+      {/* The headline links to `#unknown` from "this is not a no", so the id is
+          on the `<details>` and `Collapsible` opens itself when the hash names
+          it. A closed panel is not reliably expanded by the browser. */}
+      <Collapsible
+        id="unknown"
+        summary={
+          <SectionSummary
+            id="unknown-heading"
+            title="Still unknown"
+            count={plural(missing.length, "thing to establish", "things to establish")}
+          />
+        }
+      >
+        <p className="mt-4 leading-7 text-muted">
+          These have no safe default, so the tool declines to guess at them. Until
+          one is settled, the generation it belongs to is not answerable rather
+          than answered either way.
+        </p>
 
-      <ul className="mt-6 space-y-4">
-        {missing.map((fact) => (
-          <li
-            key={`${fact.personId}:${fact.factId}`}
-            className="break-inside-avoid rounded-lg border border-border p-5"
-          >
-            <p className="font-medium leading-7">{humaniseDates(fact.question)}</p>
-            <p className="mt-2 leading-7 text-muted">{humaniseDates(fact.why)}</p>
-            {fact.documents.length === 0 ? null : (
-              <details className="mt-3">
-                <summary className="cursor-pointer text-sm text-muted">
-                  What would settle it
-                </summary>
-                <ul className="mt-2 ml-5 list-disc space-y-1 text-sm leading-6 text-muted">
-                  {fact.documents.map((document) => (
-                    <li key={document}>{document}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-            <button
-              type="button"
-              onClick={() => onAnswerNow(fact)}
-              className={buttonClasses("secondary", "mt-3 print:hidden")}
+        <ul className="mt-6 space-y-4">
+          {missing.map((fact) => (
+            <li
+              key={`${fact.personId}:${fact.factId}`}
+              className="break-inside-avoid rounded-lg border border-border p-5"
             >
-              Answer this now
-            </button>
-          </li>
-        ))}
-      </ul>
+              <p className="font-medium leading-7">{humaniseDates(fact.question)}</p>
+              <p className="mt-2 leading-7 text-muted">{humaniseDates(fact.why)}</p>
+              {fact.documents.length === 0 ? null : (
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-sm text-muted">
+                    What would settle it
+                  </summary>
+                  <ul className="mt-2 ml-5 list-disc space-y-1 text-sm leading-6 text-muted">
+                    {fact.documents.map((document) => (
+                      <li key={document}>{document}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              <button
+                type="button"
+                onClick={() => onAnswerNow(fact)}
+                className={buttonClasses("secondary", "mt-3 print:hidden")}
+              >
+                Answer this now
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Collapsible>
     </section>
   );
 }
@@ -293,47 +357,65 @@ export function StillUnknown({
 export function Checklist({ result }: { result: ChainResult }) {
   const groups = documentChecklist(result);
   if (groups.length === 0) return null;
+  const documents = groups.reduce(
+    (total, group) => total + group.documents.length,
+    0,
+  );
 
   return (
-    <section aria-labelledby="documents" className="mt-12">
-      <h2 id="documents" className="text-lg font-semibold tracking-tight">
-        Documents to gather
-      </h2>
-      <p className="mt-2 leading-7 text-muted">
-        Everything above that is assumed or unknown, turned into things to go
-        and find, grouped by the person whose records they are. These are
-        suggestions for someone working on their own, not a checklist IRCC
-        publishes.
-      </p>
-      <p className="mt-2 text-sm leading-6 text-subtle print:hidden">
-        The boxes are for reading on screen. They are not saved, on purpose: a
-        record of which of your family&apos;s documents you have managed to find
-        is not something this tool should be storing.
-      </p>
+    <section
+      aria-labelledby="documents-heading"
+      className="mt-8 border-t border-border pt-8"
+    >
+      <Collapsible
+        summary={
+          <SectionSummary
+            id="documents-heading"
+            title="Documents to gather"
+            count={`${plural(documents, "record", "records")} across ${plural(
+              groups.length,
+              "person",
+              "people",
+            )}`}
+          />
+        }
+      >
+        <p className="mt-4 leading-7 text-muted">
+          Everything above that is assumed or unknown, turned into things to go
+          and find, grouped by the person whose records they are. These are
+          suggestions for someone working on their own, not a checklist IRCC
+          publishes.
+        </p>
+        <p className="mt-2 text-sm leading-6 text-subtle print:hidden">
+          The boxes are for reading on screen. They are not saved, on purpose: a
+          record of which of your family&apos;s documents you have managed to find
+          is not something this tool should be storing.
+        </p>
 
-      <div className="mt-6 space-y-6">
-        {groups.map((group) => (
-          <div
-            key={group.personId}
-            className="break-inside-avoid rounded-lg border border-border p-5"
-          >
-            <h3 className="font-medium">{group.label}</h3>
-            <ul className="mt-3 space-y-2">
-              {group.documents.map((document) => (
-                <li key={document}>
-                  <label className="flex cursor-pointer gap-3 text-sm leading-6">
-                    <input
-                      type="checkbox"
-                      className="mt-1 size-4 shrink-0 accent-[var(--brand)]"
-                    />
-                    <span className="text-muted">{document}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+        <div className="mt-6 space-y-6">
+          {groups.map((group) => (
+            <div
+              key={group.personId}
+              className="break-inside-avoid rounded-lg border border-border p-5"
+            >
+              <h3 className="font-medium">{group.label}</h3>
+              <ul className="mt-3 space-y-2">
+                {group.documents.map((document) => (
+                  <li key={document}>
+                    <label className="flex cursor-pointer gap-3 text-sm leading-6">
+                      <input
+                        type="checkbox"
+                        className="mt-1 size-4 shrink-0 accent-[var(--brand)]"
+                      />
+                      <span className="text-muted">{document}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Collapsible>
     </section>
   );
 }
@@ -345,47 +427,66 @@ export function Checklist({ result }: { result: ChainResult }) {
 const EXPANDED: RuleTrace["kind"][] = ["matched", "barred"];
 
 export function Reasoning({ result }: { result: ChainResult }) {
-  return (
-    <section aria-labelledby="reasoning" className="mt-12">
-      <h2 id="reasoning" className="text-lg font-semibold tracking-tight">
-        The reasoning, in full
-      </h2>
-      <p className="mt-2 leading-7 text-muted">
-        Every provision that was checked against every generation, and what it
-        decided. Each line is written to be readable on its own, and to be
-        pasted into a letter as it stands.
-      </p>
+  const lines = result.statuses.reduce(
+    (total, status) => total + status.trace.length,
+    0,
+  );
 
-      <div className="mt-6 space-y-8">
-        {result.statuses.map((status) => {
-          const shown = status.trace.filter((trace) =>
-            EXPANDED.includes(trace.kind),
-          );
-          const rest = status.trace.filter(
-            (trace) => !EXPANDED.includes(trace.kind),
-          );
-          return (
-            <div key={status.personId} className="break-inside-avoid">
-              <h3 className="font-medium">{status.label}</h3>
-              {shown.length === 0 ? (
-                <p className="mt-2 text-sm leading-6 text-muted">
-                  No provision matched and none was barred.
-                </p>
-              ) : (
-                <TraceList traces={shown} />
-              )}
-              {rest.length === 0 ? null : (
-                <details className="mt-3">
-                  <summary className="cursor-pointer text-sm text-muted">
-                    Every provision that was checked ({rest.length})
-                  </summary>
-                  <TraceList traces={rest} />
-                </details>
-              )}
-            </div>
-          );
-        })}
-      </div>
+  return (
+    <section
+      aria-labelledby="reasoning-heading"
+      className="mt-8 border-t border-border pt-8"
+    >
+      <Collapsible
+        summary={
+          <SectionSummary
+            id="reasoning-heading"
+            title="The reasoning, in full"
+            count={`${plural(lines, "provision", "provisions")} checked across ${plural(
+              result.statuses.length,
+              "generation",
+              "generations",
+            )}`}
+          />
+        }
+      >
+        <p className="mt-4 leading-7 text-muted">
+          Every provision that was checked against every generation, and what it
+          decided. Each line is written to be readable on its own, and to be
+          pasted into a letter as it stands.
+        </p>
+
+        <div className="mt-6 space-y-8">
+          {result.statuses.map((status) => {
+            const shown = status.trace.filter((trace) =>
+              EXPANDED.includes(trace.kind),
+            );
+            const rest = status.trace.filter(
+              (trace) => !EXPANDED.includes(trace.kind),
+            );
+            return (
+              <div key={status.personId} className="break-inside-avoid">
+                <h3 className="font-medium">{status.label}</h3>
+                {shown.length === 0 ? (
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    No provision matched and none was barred.
+                  </p>
+                ) : (
+                  <TraceList traces={shown} />
+                )}
+                {rest.length === 0 ? null : (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm text-muted">
+                      Every provision that was checked ({rest.length})
+                    </summary>
+                    <TraceList traces={rest} />
+                  </details>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Collapsible>
     </section>
   );
 }

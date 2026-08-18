@@ -164,14 +164,18 @@ function Report({ line }: { line: LineDraft }) {
         }
       />
 
-      <section aria-labelledby="generations" className="mt-12">
+      <section
+        aria-labelledby="generations"
+        className="mt-8 border-t border-border pt-8"
+      >
         <h2 id="generations" className="text-lg font-semibold tracking-tight">
           Generation by generation
         </h2>
         <p className="mt-2 leading-7 text-muted">
-          IRCC classifies every generation in a line under its own paragraph,
-          not only the applicant, and each generation&apos;s answer depends on
-          the one before it. This is that chain, earliest first.
+          Everything the engine has to say about each person, in full. Open a
+          generation for its dates, its effective date and what set it, the
+          paragraphs that also described them, and IRCC&apos;s own processing
+          category.
         </p>
         <ol className="mt-6 space-y-5">
           {result.statuses.map((status, index) => (
