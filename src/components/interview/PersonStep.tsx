@@ -67,9 +67,10 @@ export function PersonStep({
   const [birthYearOnly, setBirthYearOnly] = useState(person.birthDateApproximate);
   const [region, setRegion] = useState<BirthRegion | null>(person.birthRegion);
   const [living, setLiving] = useState<boolean | null>(
-    // Prefilled for the applicant, and visibly so, because the question reads
-    // oddly addressed to the person filling the form and the answer is not in
-    // any real doubt. Still a radio they can change.
+    // Never asked of the applicant: the screen is written to the person filling
+    // the form, so the question is both silly and unanswerable in the third
+    // person. Taken as true, with a quiet way out below for the one case where
+    // it is wrong: somebody checking on behalf of a person who has died.
     person.living ?? (isApplicant ? true : null),
   );
   const [deathParts, setDeathParts] = useState<DateParts>(
@@ -170,37 +171,17 @@ export function PersonStep({
         ) : null}
       </Fieldset>
 
-      <Fieldset
-        legend={isApplicant ? "Are you still living?" : "Are they still living?"}
-        className="mt-8"
-      >
-        <p className="mt-2 leading-7 text-muted">
-          Several paragraphs describe someone&apos;s status <em>on</em> a
-          particular day, 1 January 1947 or 1 April 1949, which someone who had
-          already died cannot have had. It can decide a paragraph outright.
-        </p>
-        <RadioGroup>
-          <Radio
-            name={`${id}-living`}
-            value="living"
-            checked={living === true}
-            onChange={() => setLiving(true)}
-            label="Still living"
-          />
-          <Radio
-            name={`${id}-living`}
-            value="died"
-            checked={living === false}
-            onChange={() => setLiving(false)}
-            label="They have died"
-          />
-        </RadioGroup>
-        {submitted && living === null ? (
-          <FieldError>Choose one.</FieldError>
-        ) : null}
-
-        {living === false ? (
-          <>
+      {isApplicant ? (
+        living === false ? (
+          // The applicant slot is not always the person at the keyboard: the
+          // import screen says "usually yourself", and a subject picked out of
+          // a family tree may be somebody who has died. Reached only by asking
+          // for it, so it never reads as a question put to the reader.
+          <div className="mt-8">
+            <p className="leading-7 text-muted">
+              Taken as a check about someone who has died, so read the rest of
+              this screen as being about them.
+            </p>
             <DateFields
               legend="When did they die?"
               parts={deathParts}
@@ -215,9 +196,86 @@ export function PersonStep({
               assume they were still alive on every date the Act turns on, and
               it will say so on your result rather than quietly proceeding.
             </p>
-          </>
-        ) : null}
-      </Fieldset>
+            <p className="mt-4 text-sm">
+              <button
+                type="button"
+                className="text-brand underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                onClick={() => {
+                  setLiving(true);
+                  setDeathParts(partsFromIso(""));
+                  setDeathYearOnly(false);
+                }}
+              >
+                No, this check is about me
+              </button>
+            </p>
+          </div>
+        ) : (
+          <p className="mt-8 leading-7 text-muted">
+            We take it you are living rather than asking. If you are filling
+            this in for someone who has died,{" "}
+            <button
+              type="button"
+              className="text-brand underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              onClick={() => setLiving(false)}
+            >
+              say when they died
+            </button>
+            : several paragraphs describe someone&apos;s status <em>on</em> a
+            particular day, 1 January 1947 or 1 April 1949, which someone who
+            had already died cannot have had, and it can decide a paragraph
+            outright.
+          </p>
+        )
+      ) : (
+        <Fieldset legend="Are they still living?" className="mt-8">
+          <p className="mt-2 leading-7 text-muted">
+            Several paragraphs describe someone&apos;s status <em>on</em> a
+            particular day, 1 January 1947 or 1 April 1949, which someone who
+            had already died cannot have had. It can decide a paragraph
+            outright.
+          </p>
+          <RadioGroup>
+            <Radio
+              name={`${id}-living`}
+              value="living"
+              checked={living === true}
+              onChange={() => setLiving(true)}
+              label="Still living"
+            />
+            <Radio
+              name={`${id}-living`}
+              value="died"
+              checked={living === false}
+              onChange={() => setLiving(false)}
+              label="They have died"
+            />
+          </RadioGroup>
+          {submitted && living === null ? (
+            <FieldError>Choose one.</FieldError>
+          ) : null}
+
+          {living === false ? (
+            <>
+              <DateFields
+                legend="When did they die?"
+                parts={deathParts}
+                yearOnly={deathYearOnly}
+                onParts={setDeathParts}
+                onYearOnly={setDeathYearOnly}
+                showError={false}
+                required={false}
+              />
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Leave this blank if you do not know. The tool will then have to
+                assume they were still alive on every date the Act turns on,
+                and it will say so on your result rather than quietly
+                proceeding.
+              </p>
+            </>
+          ) : null}
+        </Fieldset>
+      )}
 
       {person.gedcom === undefined ? null : (
         <p className="mt-8 rounded-lg border border-border bg-surface p-4 text-sm leading-6 text-muted">
