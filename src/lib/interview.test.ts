@@ -41,6 +41,7 @@ import type { AnswerValue, Step } from "@/lib/interview";
 function lineFromChain(chain: Person[], id = "l1"): LineDraft {
   return {
     ...newLine(id, "Test line"),
+    applicantId: chain[chain.length - 1].id,
     people: chain.map((person) => ({
       id: person.id,
       label: person.label ?? null,
@@ -277,6 +278,115 @@ describe("adding a generation", () => {
   });
 });
 
+describe("adding a descendant", () => {
+  it("asks once even for a line that has reached an anchor", () => {
+    // Unlike the ancestor step, which disappears once there is nothing further
+    // back to ask about. A childless line and a line whose children have not
+    // been entered look identical, so the question has to be put and answered.
+    const line = lineFromChain(gcmsChain);
+    expect(stepQueue(line)).toContainEqual({
+      kind: "add-descendant",
+      parentId: "g4",
+    });
+    expect(nextStep(line)).toEqual({ kind: "add-descendant", parentId: "g4" });
+  });
+
+  it("comes after the ancestor step, so it never interrupts the line", () => {
+    const line = lineFromChain([
+      { id: "g0", label: "G0", birthDate: "1910-01-01", birthRegion: "outside" },
+    ]);
+    const kinds = stepPlan(line).map((planned) => planned.step.kind);
+    expect(kinds.indexOf("add-descendant")).toBeGreaterThan(
+      kinds.indexOf("add-ancestor"),
+    );
+  });
+
+  it("stays in the queue, resolved, after 'no one after them'", () => {
+    const line = lineFromChain(gcmsChain);
+    const step: Step = { kind: "add-descendant", parentId: "g4" };
+    const answered = applyAnswer(line, step, { kind: "no-later-descendant" });
+    expect(stepQueue(answered)).toContainEqual(step);
+    expect(
+      stepPlan(answered).find((p) => stepKey(p.step) === stepKey(step))?.resolved,
+    ).toBe(true);
+  });
+
+  it("adds a generation below, asks about it, and re-opens the question", () => {
+    const line = lineFromChain(gcmsChain);
+    const added = applyAnswer(
+      line,
+      { kind: "add-descendant", parentId: "g4" },
+      { kind: "add-descendant" },
+    );
+    expect(added.people).toHaveLength(6);
+    expect(added.applicantId).toBe("g4");
+    // Identity for everyone precedes anything else, so the queue is nothing but
+    // person screens until the new row is described.
+    expect(nextStep(added)).toEqual({ kind: "person", personId: "p6" });
+
+    const described = applyAnswer(
+      added,
+      { kind: "person", personId: "p6" },
+      fill(added, "p6"),
+    );
+    // And then the question moves down to the new youngest person.
+    expect(stepQueue(described)).toContainEqual({
+      kind: "add-descendant",
+      parentId: "p6",
+    });
+  });
+
+  it("addresses the question to the youngest person, by the name in use", () => {
+    // The fixture labels its people, so the applicant is addressed by the name
+    // in use rather than as "you", the same way every other screen does it.
+    expect(
+      questionText(lineFromChain(gcmsChain), {
+        kind: "add-descendant",
+        parentId: "g4",
+      }),
+    ).toBe("Does G4 have children?");
+
+    const unnamed = lineFromChain([
+      { id: "g0", birthDate: "1960-05-04", birthRegion: "canada" },
+    ]);
+    expect(questionText(unnamed, { kind: "add-descendant", parentId: "g0" })).toBe(
+      "Do you have children?",
+    );
+    const withChild = applyAnswer(
+      unnamed,
+      { kind: "add-descendant", parentId: "g0" },
+      { kind: "add-descendant" },
+    );
+    expect(
+      questionText(withChild, { kind: "add-descendant", parentId: "p2" }),
+    ).toBe("Does your child have children?");
+  });
+
+  it("keeps the trail pointing at the right question with a child in the line", () => {
+    // The contract every ordinal has: read at render, used on the click, and in
+    // between it must not have come to mean something else. A child changes the
+    // length of the queue, which is exactly when an ordinal would rot.
+    const withChild = applyAnswer(
+      lineFromChain(gcmsChain),
+      { kind: "add-descendant", parentId: "g4" },
+      { kind: "add-descendant" },
+    );
+    const line = applyAnswer(
+      withChild,
+      { kind: "person", personId: "p6" },
+      fill(withChild, "p6"),
+    );
+    for (const group of crumbTrail(line, nextStep(line))) {
+      for (const crumb of group.crumbs) {
+        expect(stepKey(stepAt(line, crumb.index))).toBe(stepKey(crumb.step));
+      }
+    }
+    // The child gets a group of their own, and the trail stays youngest first.
+    const labels = crumbTrail(line, nextStep(line)).map((g) => g.label);
+    expect(labels).toEqual(["Your child", "G4", "G3", "G2", "G1", "G0"]);
+  });
+});
+
 describe("answering", () => {
   it("records 'I do not know yet' without asking again", () => {
     const line = lineFromChain(unaskedAnchorChain);
@@ -489,8 +599,13 @@ describe("the status strip", () => {
 const HALTING: FactId[] = ["adopted", "lostAndRestored", "citizenshipByGrant"];
 
 function fill(line: LineDraft, personId: string): AnswerValue {
-  const child = line.people[line.people.findIndex((p) => p.id === personId) + 1];
-  const year = child === undefined ? 1900 : Number(child.birthDate.slice(0, 4)) - 30;
+  // Thirty years before the person below, or thirty after the person above for
+  // somebody appended to the end of the line, so a chain that grows at both ends
+  // still has its birth dates in order.
+  const index = line.people.findIndex((p) => p.id === personId);
+  const below = yearOf(line.people[index + 1]);
+  const above = yearOf(line.people[index - 1]);
+  const year = below !== null ? below - 30 : above !== null ? above + 30 : 1900;
   return {
     kind: "person",
     patch: {
@@ -500,6 +615,12 @@ function fill(line: LineDraft, personId: string): AnswerValue {
       deathDate: `${year + 70}-06-01`,
     } satisfies Partial<PersonDraft>,
   };
+}
+
+function yearOf(person: PersonDraft | undefined): number | null {
+  if (person === undefined) return null;
+  const year = Number(person.birthDate.slice(0, 4));
+  return Number.isInteger(year) ? year : null;
 }
 
 function answerFact(factId: FactId): AnswerValue {
@@ -534,6 +655,8 @@ function adversarial(line: LineDraft, step: Step): AnswerValue {
       };
     case "add-ancestor":
       return { kind: "no-earlier-ancestor" };
+    case "add-descendant":
+      return { kind: "no-later-descendant" };
     case "done":
       return { kind: "unknown" };
   }
@@ -556,6 +679,8 @@ function evasive(line: LineDraft, step: Step): AnswerValue {
       };
     case "add-ancestor":
       return { kind: "no-earlier-ancestor" };
+    case "add-descendant":
+      return { kind: "no-later-descendant" };
     case "done":
       return { kind: "unknown" };
   }
@@ -569,6 +694,21 @@ function persistent(line: LineDraft, step: Step): AnswerValue {
       : { kind: "no-earlier-ancestor" };
   }
   return adversarial(line, step);
+}
+
+/**
+ * Extends the line forward as well as backward, so termination is proved for a
+ * chain that grows at both ends. The caps stand in for a user who stops: with
+ * neither, "add another" is an answer that always makes more work, and no
+ * interview over a growing chain terminates.
+ */
+function prolific(line: LineDraft, step: Step): AnswerValue {
+  if (step.kind === "add-descendant") {
+    return line.people.length < 8
+      ? { kind: "add-descendant" }
+      : { kind: "no-later-descendant" };
+  }
+  return persistent(line, step);
 }
 
 const CAP = 200;
@@ -611,6 +751,7 @@ describe("termination", () => {
     { name: "adversarial", answer: adversarial },
     { name: "evasive", answer: evasive },
     { name: "persistent", answer: persistent },
+    { name: "prolific", answer: prolific },
   ];
 
   for (const { name, chain } of FIXTURES) {

@@ -27,6 +27,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { AddAncestorStep } from "./AddAncestorStep";
+import { AddDescendantStep } from "./AddDescendantStep";
 import { ConfirmStep } from "./ConfirmStep";
 import { FactStep } from "./FactStep";
 import { PersonStep } from "./PersonStep";
@@ -242,6 +243,14 @@ function StepBody({
       const person = personById(line, step.childId);
       if (person === null) return <Missing />;
       return <AddAncestorStep line={line} person={person} onAnswer={onAnswer} />;
+    }
+
+    case "add-descendant": {
+      const person = personById(line, step.parentId);
+      if (person === null) return <Missing />;
+      return (
+        <AddDescendantStep line={line} person={person} onAnswer={onAnswer} />
+      );
     }
 
     case "done":

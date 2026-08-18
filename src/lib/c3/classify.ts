@@ -60,25 +60,52 @@ export type ClassifyOptions = {
    * Set false inside a re-run, which is the only place it should be false.
    */
   assessAssumptions?: boolean;
+  /**
+   * Which person in the chain the answer is about. Defaults to the last, which
+   * is who it is for a chain that ends at the applicant.
+   *
+   * It stops being the last one as soon as the caller appends a child: the
+   * engine happily classifies descendants, because each person's parent is
+   * simply the entry before them, but it cannot guess whose answer is being
+   * reported. Out-of-range values are clamped rather than trusted.
+   */
+  applicantIndex?: number;
 };
 
 /**
  * Classifies one line of descent.
  *
- * `people` runs anchor first, applicant last; each person's parent is the entry
- * before them. Pure: no I/O, no system clock, no mutation of the input.
+ * `people` runs oldest first; each person's parent is the entry before them.
+ * Pure: no I/O, no system clock, no mutation of the input.
  */
 export function classifyChain(
   people: Person[],
   options: ClassifyOptions = {},
 ): ChainResult {
-  const result = runChain(people);
+  const applicantIndex = clampIndex(options.applicantIndex, people.length);
+  const result = runChain(people, applicantIndex);
   if (options.assessAssumptions === false) return result;
-  markDecisiveAssumptions(people, result);
+  markDecisiveAssumptions(people, result, applicantIndex);
   return result;
 }
 
-function runChain(people: Person[]): ChainResult {
+function clampIndex(requested: number | undefined, length: number): number {
+  const last = length - 1;
+  if (requested === undefined || !Number.isInteger(requested)) return last;
+  return Math.min(Math.max(requested, 0), last);
+}
+
+/**
+ * The whole fold, and the only place the applicant is picked.
+ *
+ * The index belongs here rather than in `classifyChain` because
+ * `markDecisiveAssumptions` re-runs this once per inverted default, forty-odd
+ * times for a five-generation chain. Threading the index through the outer
+ * result only would leave every one of those re-runs comparing the real
+ * applicant against the youngest descendant, and stamp `decisive` wrongly on
+ * every assumption in the line.
+ */
+function runChain(people: Person[], applicantIndex: number): ChainResult {
   if (people.length === 0) {
     throw new Error("A chain needs at least one person.");
   }
@@ -98,12 +125,13 @@ function runChain(people: Person[]): ChainResult {
     target?.flags.push(flag);
   }
 
-  const advisories = buildAdvisories(statuses, people);
-  const applicant = statuses[statuses.length - 1];
+  const advisories = buildAdvisories(statuses, people, applicantIndex);
+  const applicant = statuses[applicantIndex];
 
   return {
     statuses,
     applicant,
+    applicantIndex,
     headline: headlineFor(
       applicant,
       advisories.length > 0,
@@ -811,7 +839,11 @@ function headlineFor(
  * being reported. A flip that changes a paragraph half way up the line without
  * moving the applicant's own is real but not what the reader is deciding on.
  */
-function markDecisiveAssumptions(people: Person[], result: ChainResult): void {
+function markDecisiveAssumptions(
+  people: Person[],
+  result: ChainResult,
+  applicantIndex: number,
+): void {
   const baseline = result.applicant;
 
   for (const status of result.statuses) {
@@ -819,7 +851,7 @@ function markDecisiveAssumptions(people: Person[], result: ChainResult): void {
       if (assumption.factId === null) continue; // aliveness; no single inverse
       const inverted = invertFact(people, assumption.personId, assumption.factId);
       if (inverted === null) continue;
-      const alternative = runChain(inverted).applicant;
+      const alternative = runChain(inverted, applicantIndex).applicant;
       assumption.decisive =
         alternative.outcome !== baseline.outcome ||
         alternative.paragraph !== baseline.paragraph ||

@@ -344,9 +344,15 @@ export type Headline = {
 };
 
 export type ChainResult = {
-  /** One per person, in the order given: anchor first, applicant last. */
+  /** One per person, in the order given: oldest first. */
   statuses: Status[];
   applicant: Status;
+  /**
+   * Where the applicant sits in `statuses`. The last entry unless the caller
+   * said otherwise, which it does once a line has descendants in it: everything
+   * after this index is a child, grandchild, and so on.
+   */
+  applicantIndex: number;
   headline: Headline;
   /** Chain-level, not attributable to a single person. */
   advisories: Advisory[];

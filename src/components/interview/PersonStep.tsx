@@ -55,7 +55,10 @@ export function PersonStep({
   onAnswer: (value: AnswerValue) => void;
 }) {
   const id = useId();
-  const isApplicant = generationsBack(line, person.id) === 0;
+  // By id, not by position: `generationsBack` is 0 for the applicant, and it is
+  // also 0 for anybody the line does not contain, which a person screen is
+  // occasionally rendered for while another tab is mid-edit.
+  const isApplicant = person.id === line.applicantId;
 
   const [label, setLabel] = useState(person.label ?? "");
   const [birthParts, setBirthParts] = useState<DateParts>(

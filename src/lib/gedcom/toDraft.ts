@@ -46,6 +46,10 @@ export function lineFromPath(
   return {
     ...newLine(lineId, name),
     people,
+    // The last step is the person the file was searched for, which is who the
+    // answer is about. Stated rather than left to the numbering, so that adding
+    // a child to an imported line cannot quietly change the subject.
+    applicantId: people[people.length - 1].id,
     nextPersonSeq: path.steps.length + 1,
   };
 }

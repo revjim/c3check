@@ -6,12 +6,20 @@
  * that is `draftStore.ts`, and the split is what keeps this module testable in
  * the node environment the rest of the suite runs in.
  *
- * **`people` is stored anchor-first, applicant last**, which is the order
- * `classifyChain` wants, so `chainFrom` is a straight map with no reversal
- * anywhere. The interview walks backwards through it, but that is a rendering
- * concern: "you" is the last entry and adding a generation is an `unshift`.
- * Because labels derive from position rather than being written down at the
- * time, an unshift needs no relabelling pass.
+ * **`people` is stored oldest first**, which is the order `classifyChain` wants,
+ * so `chainFrom` is a straight map with no reversal anywhere. The interview
+ * walks backwards through it, but that is a rendering concern: adding a
+ * generation is an `unshift`, and because labels derive from position rather
+ * than being written down at the time, an unshift needs no relabelling pass.
+ *
+ * **The applicant is named, not positional.** A line is "a chain that contains
+ * you", not "your ancestors": once the backward walk reaches an anchor the same
+ * chain can be extended *forward* into children and grandchildren, and the
+ * engine already classifies them correctly, because it only ever looks at the
+ * entry before each person. What it cannot do is guess who the answer is about,
+ * and "the last entry" stops meaning "you" the moment a child is appended. So
+ * `applicantId` is stored, for the same reason `StepRef` stores ids rather than
+ * ordinals: positions shift as the line grows, and a meaning built on one rots.
  */
 
 import { classifyChain } from "@/lib/c3";
@@ -32,8 +40,23 @@ import type {
  * key-versioned because bumping it *should* re-prompt everyone; bumping
  * `DRAFT_KEY` would silently orphan a half-finished six-generation line. See
  * the note beside both constants in `site.ts`.
+ *
+ * **Bumping this is not free.** `migrateDraft` compared the stored version to
+ * this constant for equality and returned an empty draft on any mismatch, so
+ * raising the number without teaching it the old shape would discard every
+ * draft anyone has in progress, silently, on the deploy. `READABLE_VERSIONS` is
+ * the list it actually accepts, and `draft.test.ts` feeds a version 1 document
+ * through to keep that trap from reopening.
+ *
+ * 1 -> 2 added `applicantId` and `noLaterDescendant`.
  */
-export const DRAFT_VERSION = 1;
+export const DRAFT_VERSION = 2;
+
+/**
+ * Every version this build can read. A document at an older version is upgraded
+ * by `migrateLine`, which defaults each field the older shape lacked.
+ */
+const READABLE_VERSIONS: number[] = [1, DRAFT_VERSION];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,19 +125,27 @@ export type StepRef =
   | { kind: "fact"; personId: string; factId: FactId }
   /** Per person, not per fact; see the note on the confirm pass in `interview.ts`. */
   | { kind: "confirm"; personId: string }
-  | { kind: "add-ancestor"; childId: string };
+  | { kind: "add-ancestor"; childId: string }
+  | { kind: "add-descendant"; parentId: string };
 
 export type LineDraft = {
   id: string;
   /** "Mother's line". Shown on /check/lines and at the head of the report. */
   name: string;
-  /** Anchor first, applicant last: engine order, no reversal anywhere. */
+  /** Oldest first: engine order, no reversal anywhere. */
   people: PersonDraft[];
+  /**
+   * Who the answer is about. Usually the last entry, and not once a child has
+   * been added; see the note at the head of this file.
+   */
+  applicantId: string;
   nextPersonSeq: number;
   /** Set by "change this answer"; consumed by `nextStep`. */
   pendingEdit: StepRef | null;
   /** "I do not know who their parent was". Ends the line without an anchor. */
   noEarlierAncestor: boolean;
+  /** "There is no one after them". Stops the interview offering a child. */
+  noLaterDescendant: boolean;
   forkedFrom?: { lineId: string; atPersonId: string };
   /** Stamped by the store. A pure reducer never sets this. */
   updatedAt: number;
@@ -156,9 +187,11 @@ export function newLine(id: string, name: string): LineDraft {
     id,
     name,
     people: [newPerson("p1")],
+    applicantId: "p1",
     nextPersonSeq: 2,
     pendingEdit: null,
     noEarlierAncestor: false,
+    noLaterDescendant: false,
     updatedAt: 0,
   };
 }
@@ -195,9 +228,25 @@ export function currentLine(draft: Draft): LineDraft | null {
   return lineById(draft, draft.currentLineId);
 }
 
-/** The person the answer is about: the last entry, because the list runs anchor-first. */
+/**
+ * Where the applicant sits in the line.
+ *
+ * Falls back to the last entry, which is both the pre-v2 meaning and the only
+ * sane guess: a stored `applicantId` naming somebody who is no longer in the
+ * line would otherwise index off the end and take the report with it.
+ * `migrateLine` already refuses such an id, so this is the second line of
+ * defence, for a line assembled in code rather than read from storage.
+ */
+export function applicantIndexOf(line: LineDraft): number {
+  const index = line.people.findIndex(
+    (person) => person.id === line.applicantId,
+  );
+  return index === -1 ? line.people.length - 1 : index;
+}
+
+/** The person the answer is about. */
 export function applicantOf(line: LineDraft): PersonDraft | null {
-  return line.people[line.people.length - 1] ?? null;
+  return line.people[applicantIndexOf(line)] ?? null;
 }
 
 /** The earliest generation entered, which is not necessarily an anchor yet. */
@@ -215,10 +264,16 @@ export function parentOf(line: LineDraft, personId: string): PersonDraft | null 
   return index > 0 ? line.people[index - 1] : null;
 }
 
-/** 0 for the applicant, 1 for their parent, and so on. */
+/**
+ * 0 for the applicant, 1 for their parent, and so on.
+ *
+ * **Negative for a descendant**: -1 is the applicant's child. Every caller has
+ * to handle that, and `defaultLabel` is the one that would otherwise fail
+ * quietly rather than loudly; see the note there.
+ */
 export function generationsBack(line: LineDraft, personId: string): number {
   const index = line.people.findIndex((person) => person.id === personId);
-  return index === -1 ? 0 : line.people.length - 1 - index;
+  return index === -1 ? 0 : applicantIndexOf(line) - index;
 }
 
 /**
@@ -255,6 +310,18 @@ const GRAND: Record<ParentKind, string> = {
  * produces "You is a citizen" on the headline of the finished report. Questions
  * addressed to the person filling the form want the second person instead, and
  * that is `addressOf`.
+ *
+ * **The negative cases are load-bearing.** `back` goes below zero for a
+ * descendant, and the `default` arm catches any number it is not given a case
+ * for, so without them a grandchild renders as "Your -2x-great-grandparent" on
+ * a report somebody is about to act on: wrong, and wrong in a way that looks
+ * like a rendering bug rather than announcing itself. They are the only thing
+ * standing between a descendant and nonsense.
+ *
+ * There is no `ChildKind` mirroring `ParentKind`. Mother and father exist so a
+ * line can fork into two parental lines and so a row reads "your grandmother";
+ * a child has no equivalent need, and anybody who wants a name types one on the
+ * identity screen.
  */
 export function defaultLabel(back: number, kind: ParentKind = "parent"): string {
   switch (back) {
@@ -268,10 +335,18 @@ export function defaultLabel(back: number, kind: ParentKind = "parent"): string 
       return `Your great-${GRAND[kind]}`;
     case 4:
       return `Your great-great-${GRAND[kind]}`;
+    case -1:
+      return "Your child";
+    case -2:
+      return "Your grandchild";
+    case -3:
+      return "Your great-grandchild";
     default:
       // Past here the chain of "great"s stops being readable and starts being
       // a counting exercise for the reader.
-      return `Your ${back - 2}x-great-${GRAND[kind]}`;
+      return back < 0
+        ? `Your ${-back - 2}x-great-grandchild`
+        : `Your ${back - 2}x-great-${GRAND[kind]}`;
   }
 }
 
@@ -380,7 +455,10 @@ export function classifyLine(
 ): ChainResult | null {
   const chain = chainFrom(line);
   if (chain === null) return null;
-  return classifyChain(chain, options);
+  return classifyChain(chain, {
+    ...options,
+    applicantIndex: applicantIndexOf(line),
+  });
 }
 
 /**
@@ -437,7 +515,10 @@ export function addAncestor(
   kind: ParentKind = "parent",
 ): LineDraft {
   const person = newPerson(`p${line.nextPersonSeq}`);
-  const back = line.people.length;
+  // One further back than the person currently at the top, counted from the
+  // applicant rather than from the end of the array, which are the same number
+  // only until a descendant is added.
+  const back = applicantIndexOf(line) + 1;
   return {
     ...line,
     people: [
@@ -448,6 +529,30 @@ export function addAncestor(
     ],
     nextPersonSeq: line.nextPersonSeq + 1,
     noEarlierAncestor: false,
+  };
+}
+
+/**
+ * Adds an empty generation below the current youngest one.
+ *
+ * The mirror of `addAncestor`, and simpler: a push cannot move anybody's index,
+ * so nothing needs relabelling and there is no `ChildKind` to write down. The
+ * engine needs no teaching either. `classifyPerson` reads each person's parent
+ * as the entry before them, and `presenceDaysInCanada` in the fact catalogue is
+ * already Bill C-3's substantial-connection test, which only ever bites on a
+ * child born abroad to a first-generation-abroad parent. The rules for
+ * descendants were written before there was any way to enter one.
+ *
+ * `applicantId` is deliberately left alone. The answer is still about the person
+ * who started the interview, and the new row is a further question rather than a
+ * new subject; see the decision note in `interview.ts`.
+ */
+export function addDescendant(line: LineDraft): LineDraft {
+  return {
+    ...line,
+    people: [...line.people, newPerson(`p${line.nextPersonSeq}`)],
+    nextPersonSeq: line.nextPersonSeq + 1,
+    noLaterDescendant: false,
   };
 }
 
@@ -545,6 +650,10 @@ export function setNoEarlierAncestor(line: LineDraft, value: boolean): LineDraft
   return { ...line, noEarlierAncestor: value };
 }
 
+export function setNoLaterDescendant(line: LineDraft, value: boolean): LineDraft {
+  return { ...line, noLaterDescendant: value };
+}
+
 export function replaceLine(draft: Draft, line: LineDraft): Draft {
   return {
     ...draft,
@@ -598,19 +707,28 @@ export function forkLine(
   if (index === -1) return null;
 
   const id = nextLineId(draft);
+  const people = source.people.slice(index).map((person) => ({
+    ...person,
+    facts: { ...person.facts },
+    answered: [...person.answered],
+    acceptedDefaults: [...person.acceptedDefaults],
+    ...(person.gedcom !== undefined ? { gedcom: { ...person.gedcom } } : {}),
+  }));
   const line: LineDraft = {
     id,
     name,
-    people: source.people.slice(index).map((person) => ({
-      ...person,
-      facts: { ...person.facts },
-      answered: [...person.answered],
-      acceptedDefaults: [...person.acceptedDefaults],
-      ...(person.gedcom !== undefined ? { gedcom: { ...person.gedcom } } : {}),
-    })),
+    people,
+    // Forking at a person below the applicant drops the applicant, which only
+    // happens for a line that had descendants entered. The youngest person kept
+    // is then the subject of the new line, which is the same rule the interview
+    // started from.
+    applicantId: people.some((person) => person.id === source.applicantId)
+      ? source.applicantId
+      : people[people.length - 1].id,
     nextPersonSeq: source.nextPersonSeq,
     pendingEdit: null,
     noEarlierAncestor: false,
+    noLaterDescendant: source.noLaterDescendant,
     forkedFrom: { lineId, atPersonId },
     updatedAt: 0,
   };
@@ -649,7 +767,10 @@ export function parseDraft(text: string | null): Draft {
  */
 export function migrateDraft(raw: unknown): Draft {
   if (!isRecord(raw)) return emptyDraft();
-  if (raw.version !== DRAFT_VERSION) return emptyDraft();
+  // Not `!== DRAFT_VERSION`. That is what this line used to say, and bumping the
+  // constant beside it would then have thrown away every draft in progress.
+  if (typeof raw.version !== "number") return emptyDraft();
+  if (!READABLE_VERSIONS.includes(raw.version)) return emptyDraft();
   if (!Array.isArray(raw.lines)) return emptyDraft();
 
   const lines = raw.lines
@@ -664,7 +785,15 @@ export function migrateDraft(raw: unknown): Draft {
   return { version: DRAFT_VERSION, lines, currentLineId };
 }
 
-function migrateLine(raw: unknown): LineDraft | null {
+/**
+ * One line, validated and brought up to the current shape, or null.
+ *
+ * Exported because a markdown document carries a line rather than a whole draft
+ * (see `src/lib/markdown.ts`), and that file is as user-writable as storage is:
+ * hand-edited, saved by an older build, or truncated by a mail client. There is
+ * exactly one validator for both paths, and it never throws.
+ */
+export function migrateLine(raw: unknown): LineDraft | null {
   if (!isRecord(raw)) return null;
   if (typeof raw.id !== "string" || raw.id === "") return null;
   if (!Array.isArray(raw.people)) return null;
@@ -679,11 +808,21 @@ function migrateLine(raw: unknown): LineDraft | null {
     id: raw.id,
     name: typeof raw.name === "string" ? raw.name : "Your line",
     people,
+    // A version 1 document has no `applicantId`: the applicant was defined
+    // positionally as the last entry, so that is exactly what the upgrade is.
+    // The same fallback catches an id naming somebody who has since been
+    // dropped, which would otherwise index off the end of the chain.
+    applicantId:
+      typeof raw.applicantId === "string" &&
+      people.some((person) => person.id === raw.applicantId)
+        ? raw.applicantId
+        : people[people.length - 1].id,
     // Never below what the people already use, or a later `addAncestor` would
     // mint an id that is already taken and two generations would merge.
     nextPersonSeq: Math.max(seq, highestPersonSeq(people) + 1),
     pendingEdit: migrateStepRef(raw.pendingEdit, people),
     noEarlierAncestor: raw.noEarlierAncestor === true,
+    noLaterDescendant: raw.noLaterDescendant === true,
     ...(isRecord(raw.forkedFrom) &&
     typeof raw.forkedFrom.lineId === "string" &&
     typeof raw.forkedFrom.atPersonId === "string"
@@ -789,6 +928,10 @@ function migrateStepRef(raw: unknown, people: PersonDraft[]): StepRef | null {
     case "add-ancestor":
       return typeof raw.childId === "string" && known.has(raw.childId)
         ? { kind: "add-ancestor", childId: raw.childId }
+        : null;
+    case "add-descendant":
+      return typeof raw.parentId === "string" && known.has(raw.parentId)
+        ? { kind: "add-descendant", parentId: raw.parentId }
         : null;
     default:
       return null;

@@ -24,6 +24,7 @@ import type { Assumption, ChainResult, FactId } from "@/lib/c3";
 import {
   acceptDefault,
   addAncestor,
+  addDescendant,
   addressOf,
   anchorOf,
   applicantOf,
@@ -37,6 +38,7 @@ import {
   sentenceStart,
   setFact,
   setNoEarlierAncestor,
+  setNoLaterDescendant,
   setPendingEdit,
   updatePerson,
 } from "@/lib/draft";
@@ -53,6 +55,7 @@ export type Step =
   /** One screen per person, carrying every decisive assumption about them. */
   | { kind: "confirm"; personId: string }
   | { kind: "add-ancestor"; childId: string }
+  | { kind: "add-descendant"; parentId: string }
   | { kind: "done" };
 
 export type PlannedStep = {
@@ -74,6 +77,8 @@ export function stepKey(step: Step): string {
       return `confirm:${step.personId}`;
     case "add-ancestor":
       return `add-ancestor:${step.childId}`;
+    case "add-descendant":
+      return `add-descendant:${step.parentId}`;
     case "done":
       return "done";
   }
@@ -111,8 +116,18 @@ export function stepToRef(step: Step): StepRef | null {
  *    `Set<FactId>` in rule-evaluation order and flattened over `statuses`, so it
  *    is already grouped by person anchor-first; grouping it by person here
  *    preserves that order rather than imposing a new one.
- * 3. **Another generation**, where the line has no anchor yet.
- * 4. **The confirm pass**, but only once 1 to 3 have nothing outstanding.
+ * 3. **Another generation earlier**, where the line has no anchor yet.
+ * 4. **Anyone later**, once the backward walk is settled: children and
+ *    grandchildren, who are the same chain extended the other way.
+ * 5. **The confirm pass**, but only once 1 to 4 have nothing outstanding.
+ *
+ * **Why the interview still starts with you and works backwards.** Starting at
+ * the anchor and working forward reads more naturally and is worse for the case
+ * that matters: nobody knows which of their ancestors was the earliest one born
+ * in Canada, and finding that out is the entire reason the walk goes backwards
+ * and stops when it arrives. Descendants extend the finished chain forward
+ * instead, which is why the step for them comes after the ancestor step and
+ * before the confirm pass: it must never interrupt resolving the line.
  *
  * A halted chain returns nothing at all: there is no further question worth
  * asking, and the results page carries the reason.
@@ -131,7 +146,12 @@ export function stepPlan(line: LineDraft): PlannedStep[] {
   if (result === null) return identity;
   if (result.applicant.outcome === "stopped") return identity;
 
-  const plan = [...identity, ...factSteps(line, result), ...ancestorStep(line)];
+  const plan = [
+    ...identity,
+    ...factSteps(line, result),
+    ...ancestorStep(line),
+    ...descendantStep(line),
+  ];
   if (plan.some((planned) => !planned.resolved)) return plan;
 
   return [...plan, ...confirmSteps(line)];
@@ -166,6 +186,35 @@ function ancestorStep(line: LineDraft): PlannedStep[] {
     {
       step: { kind: "add-ancestor", childId: top.id },
       resolved: line.noEarlierAncestor,
+    },
+  ];
+}
+
+/**
+ * "Is there anyone after them?", keyed to the youngest person in the line.
+ *
+ * **Always offered, unlike the ancestor step**, which disappears once the line
+ * reaches an anchor because there is then genuinely nothing further back to ask
+ * about. There is no equivalent structural signal here: a childless line and a
+ * line whose children have not been entered yet look identical, so the question
+ * has to be put once and answered. It is also the question people most want
+ * answered, which makes offering it the right default rather than a cost.
+ *
+ * **Adding a child does not move the answer onto the child.** `applicantId`
+ * stays where it was, so the headline goes on being about the person who started
+ * the interview, and the chain table carries every generation's own paragraph.
+ * The alternative, treating the youngest person as the subject, was considered
+ * and rejected: it would silently change what the page answers for everybody who
+ * has no descendants, and "what about my daughter" is a question about a row in
+ * the table rather than a request to be told about somebody else instead.
+ */
+function descendantStep(line: LineDraft): PlannedStep[] {
+  const youngest = line.people[line.people.length - 1];
+  if (youngest === undefined) return [];
+  return [
+    {
+      step: { kind: "add-descendant", parentId: youngest.id },
+      resolved: line.noLaterDescendant,
     },
   ];
 }
@@ -303,6 +352,8 @@ export function personOfStep(line: LineDraft, step: Step): PersonDraft | null {
       return personById(line, step.personId);
     case "add-ancestor":
       return personById(line, step.childId);
+    case "add-descendant":
+      return personById(line, step.parentId);
     case "done":
       return null;
   }
@@ -331,6 +382,12 @@ export function questionText(line: LineDraft, step: Step): string {
       return `Things we assumed about ${midSentence(who)}`;
     case "add-ancestor":
       return `Who was ${possessive(midSentence(who))} parent?`;
+    case "add-descendant":
+      // "Does you have children" is what the general form produces for the
+      // applicant, and they are the person this is asked of most of the time.
+      return who === "you"
+        ? "Do you have children?"
+        : `Does ${midSentence(who)} have children?`;
     case "done":
       return "There is enough here for an answer";
   }
@@ -390,10 +447,11 @@ export type CrumbGroup = {
  * everything. "Change my grandmother's birth date" is the actual errand, so the
  * generation is what the trail is organised around.
  *
- * **Applicant first**, which is the reverse of how `people` is stored. The line
- * is stored anchor-first because that is what the engine wants; it is entered
+ * **Youngest first**, which is the reverse of how `people` is stored. The line
+ * is stored oldest-first because that is what the engine wants; it is entered
  * from the applicant backwards, one generation at a time, and that is the order
- * it reads in.
+ * it reads in. A line with children in it puts them above the applicant, which
+ * is the same rule and the way a family tree is drawn.
  *
  * Only resolved steps appear, plus the one being shown and the frontier. The
  * trail is a record of where you have been, not a table of contents for
@@ -441,6 +499,8 @@ function personIdOf(step: Step): string | null {
       return step.personId;
     case "add-ancestor":
       return step.childId;
+    case "add-descendant":
+      return step.parentId;
     case "done":
       return null;
   }
@@ -456,6 +516,8 @@ function crumbLabel(step: Step): string {
       return "What we assumed";
     case "add-ancestor":
       return "Anyone earlier";
+    case "add-descendant":
+      return "Anyone later";
     case "done":
       return "The result";
   }
@@ -480,7 +542,11 @@ export type AnswerValue =
   /** `kind` labels the new generation; the engine does not model sex. */
   | { kind: "add-ancestor"; parent: ParentKind }
   /** "I do not know who their parent was." Ends the line without an anchor. */
-  | { kind: "no-earlier-ancestor" };
+  | { kind: "no-earlier-ancestor" }
+  /** "Add a child." No kind to state: there is no `ChildKind`. */
+  | { kind: "add-descendant" }
+  /** "There is no one after them." */
+  | { kind: "no-later-descendant" };
 
 /**
  * Records an answer and returns the new line.
@@ -538,6 +604,16 @@ function apply(line: LineDraft, step: Step, value: AnswerValue): LineDraft {
           return addAncestor(line, value.parent);
         case "no-earlier-ancestor":
           return setNoEarlierAncestor(line, true);
+        default:
+          return line;
+      }
+
+    case "add-descendant":
+      switch (value.kind) {
+        case "add-descendant":
+          return addDescendant(line);
+        case "no-later-descendant":
+          return setNoLaterDescendant(line, true);
         default:
           return line;
       }

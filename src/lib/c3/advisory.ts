@@ -107,8 +107,11 @@ export function reachFlags(statuses: Status[]): UncertaintyFlag[] {
 export function processingPause(
   statuses: Status[],
   people: Person[],
+  applicantIndex: number,
 ): Advisory | null {
-  const applicant = statuses[statuses.length - 1];
+  // The pause is about a particular applicant's file, so it is the applicant's
+  // own paragraph and generation that decide it, not the youngest person's.
+  const applicant = statuses[applicantIndex];
   if (applicant === undefined) return null;
 
   // 1. Claiming citizenship by descent.
@@ -183,10 +186,14 @@ export function deathCohortAdvisory(statuses: Status[]): Advisory | null {
   };
 }
 
-export function buildAdvisories(statuses: Status[], people: Person[]): Advisory[] {
+export function buildAdvisories(
+  statuses: Status[],
+  people: Person[],
+  applicantIndex: number,
+): Advisory[] {
   return [
     consecutiveCohortAdvisory(statuses),
     deathCohortAdvisory(statuses),
-    processingPause(statuses, people),
+    processingPause(statuses, people, applicantIndex),
   ].filter((a): a is Advisory => a !== null);
 }

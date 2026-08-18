@@ -7,6 +7,7 @@ import {
   newfoundlandAfterUnionChain,
   newfoundlandBeforeUnionChain,
   overlapChain,
+  postCifChain,
   unaskedAnchorChain,
   withFacts,
 } from "@/lib/c3/fixtures";
@@ -588,6 +589,70 @@ describe("which assumptions actually carry the answer", () => {
           alt.applicant.outcome !== result.applicant.outcome,
         `${a.personId}:${a.factId} was marked decisive but changed nothing`,
       ).toBe(true);
+    }
+  });
+});
+
+describe("a chain that carries on past the applicant", () => {
+  /**
+   * A child born abroad after Bill C-3 came into force, to a
+   * first-generation-abroad parent. This is the one situation where subsection
+   * 3(3) still bites, and it can only arise for a descendant: the substantial
+   * connection test is a question about the *parent's* days in Canada that only
+   * a child makes relevant.
+   */
+  const withChild = postCifChain({ presenceDaysInCanada: 1095 });
+
+  it("classifies a child of the applicant on their own facts", () => {
+    const result = classifyChain(withChild, { applicantIndex: 1 });
+    expect(result.statuses.map((s) => s.paragraph)).toEqual(["d", "b", "b"]);
+    expect(result.statuses[2].generationAbroad).toBe(2);
+  });
+
+  it("keeps the answer about the applicant, not the youngest person", () => {
+    const result = classifyChain(withChild, { applicantIndex: 1 });
+    expect(result.applicantIndex).toBe(1);
+    expect(result.applicant.personId).toBe("g1");
+    expect(result.headline.summary).toContain("G1");
+    // And with no index given, the last person is the applicant, which is what
+    // every existing caller and fixture relies on.
+    expect(classifyChain(withChild).applicant.personId).toBe("g2");
+  });
+
+  it("says the child is not a citizen where the presence test is not met", () => {
+    const short = classifyChain(postCifChain({ presenceDaysInCanada: 40 }), {
+      applicantIndex: 1,
+    });
+    expect(short.statuses[1].outcome).toBe("qualifies");
+    expect(short.statuses[2].outcome).toBe("fails");
+    // The applicant's own answer is untouched by their child's.
+    expect(short.applicant.paragraph).toBe("b");
+  });
+
+  it("measures decisiveness against the applicant, through every re-run", () => {
+    // The trap: `markDecisiveAssumptions` re-runs the whole chain once per
+    // inverted default, so the index has to live inside the re-run. Threading it
+    // only into the outer result would compare the real applicant against the
+    // youngest descendant on all forty re-runs, and mis-stamp `decisive` on
+    // every assumption in the line. Adoption of the child halts the child and
+    // nobody else, so it carries the last person's answer and not G1's.
+    const adoptedChild = (a: { personId: string; factId: string | null }) =>
+      a.personId === "g2" && a.factId === "adopted";
+
+    const asChild = classifyChain(withChild);
+    expect(asChild.assumptions.find(adoptedChild)?.decisive).toBe(true);
+
+    const asParent = classifyChain(withChild, { applicantIndex: 1 });
+    expect(asParent.assumptions.find(adoptedChild)?.decisive).toBe(false);
+  });
+
+  it("clamps an index that is not a position in the chain", () => {
+    // A results page is a bad place to find out that the applicant is undefined.
+    for (const applicantIndex of [-1, 99, 1.5, Number.NaN]) {
+      const result = classifyChain(withChild, { applicantIndex });
+      expect(result.statuses[result.applicantIndex], String(applicantIndex)).toBe(
+        result.applicant,
+      );
     }
   });
 });

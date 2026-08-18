@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  DRAFT_VERSION,
   addAncestor,
+  addDescendant,
   addLine,
   addressOf,
+  applicantOf,
   chainFrom,
   classifyLine,
   clearFact,
@@ -13,10 +16,12 @@ import {
   labelOf,
   midSentence,
   migrateDraft,
+  migrateLine,
   needsAncestor,
   parseDraft,
   serializeDraft,
   setFact,
+  setNoLaterDescendant,
   updatePerson,
 } from "@/lib/draft";
 import type { Draft, LineDraft, PersonDraft } from "@/lib/draft";
@@ -47,6 +52,8 @@ function lineOf(people: PersonDraft[]): LineDraft {
   return {
     ...newLine("l1", "Your line"),
     people,
+    // The youngest person, which is what a line with no descendants in it means.
+    applicantId: people[people.length - 1]?.id ?? "p1",
     nextPersonSeq: people.length + 1,
   };
 }
@@ -168,6 +175,38 @@ describe("labels", () => {
     expect(defaultLabel(5)).toBe("Your 3x-great-grandparent");
   });
 
+  it("has a word for every generation forward as well as back", () => {
+    // `generationsBack` goes negative for a descendant, and `defaultLabel` has a
+    // `default` arm that catches any number it was not given a case for. Without
+    // these, a grandchild renders as "Your -2x-great-grandparent" on a report
+    // somebody is about to act on.
+    expect(defaultLabel(-1)).toBe("Your child");
+    expect(defaultLabel(-2)).toBe("Your grandchild");
+    expect(defaultLabel(-3)).toBe("Your great-grandchild");
+    expect(defaultLabel(-4)).toBe("Your 2x-great-grandchild");
+    for (let back = -8; back <= 8; back++) {
+      expect(defaultLabel(back), `back ${back}`).not.toContain("-1x");
+      expect(defaultLabel(back), `back ${back}`).not.toMatch(/\s-\d/);
+    }
+  });
+
+  it("labels a descendant forward and an ancestor back from the same person", () => {
+    const withChild = addDescendant(gcmsLine);
+    const withGrandchild = addDescendant(withChild);
+    expect(labelOf(withGrandchild, withGrandchild.people[5])).toBe("Your child");
+    expect(labelOf(withGrandchild, withGrandchild.people[6])).toBe(
+      "Your grandchild",
+    );
+    // The applicant does not move, and neither does anybody above them.
+    expect(labelOf(withGrandchild, withGrandchild.people[4])).toBe(
+      "The applicant",
+    );
+    expect(labelOf(withGrandchild, withGrandchild.people[0])).toBe(
+      "Your great-great-grandparent",
+    );
+    expect(addressOf(withGrandchild, withGrandchild.people[4])).toBe("you");
+  });
+
   it("prefers what the user called them", () => {
     const named = lineOf([person("p1", { label: "Grandmother Alice" })]);
     expect(labelOf(named, named.people[0])).toBe("Grandmother Alice");
@@ -205,6 +244,55 @@ describe("adding a generation", () => {
     expect(after.people.every((p) => p.label === null)).toBe(true);
     expect(labelOf(after, after.people[0])).toBe("Your parent");
     expect(labelOf(after, after.people[1])).toBe("The applicant");
+  });
+
+  it("counts a stated mother back from the applicant, not from the array", () => {
+    // The bug an appended descendant introduces: `addAncestor` used to derive
+    // the new label from `people.length`, which stops being the applicant's
+    // distance from the top the moment there is anybody below them.
+    const withChild = addDescendant(lineOf([person("p2"), person("p1")]));
+    const added = addAncestor(withChild, "mother");
+    expect(added.people[0].label).toBe("Your grandmother");
+    expect(labelOf(added, added.people[0])).toBe("Your grandmother");
+  });
+});
+
+describe("adding a descendant", () => {
+  it("appends without disturbing an id or the applicant", () => {
+    const before = lineOf([person("p2"), person("p1")]);
+    const after = addDescendant(before);
+    expect(after.people.map((p) => p.id)).toEqual(["p2", "p1", "p3"]);
+    expect(after.applicantId).toBe("p1");
+    expect(applicantOf(after)?.id).toBe("p1");
+    expect(after.nextPersonSeq).toBe(4);
+  });
+
+  it("clears a previous 'no one after them'", () => {
+    const closed = setNoLaterDescendant(lineOf([person("p1")]), true);
+    expect(addDescendant(closed).noLaterDescendant).toBe(false);
+  });
+
+  it("keeps the answer about the applicant, and classifies the child too", () => {
+    // The engine needed no teaching for this: each person's parent is simply the
+    // entry before them. What it could not do is guess whose answer is reported.
+    const withChild = addDescendant(gcmsLine);
+    const child = updatePerson(withChild, "p6", {
+      birthDate: "2001-04-05",
+      birthRegion: "outside",
+      living: true,
+    });
+    const result = classifyLine(child);
+    expect(result?.statuses.map((s) => s.paragraph)).toEqual([
+      "k",
+      "o",
+      "q",
+      "q",
+      "g",
+      "b",
+    ]);
+    expect(result?.applicant.personId).toBe("p1");
+    expect(result?.applicantIndex).toBe(4);
+    expect(result?.headline.paragraph).toBe("g");
   });
 });
 
@@ -413,6 +501,73 @@ describe("migrateDraft", () => {
     });
   });
 
+  it("upgrades a version 1 draft rather than discarding it", () => {
+    // The trap: `migrateDraft` compared the stored version to DRAFT_VERSION for
+    // equality, so bumping the constant on its own would have thrown away every
+    // draft in progress, silently, on the deploy. A version 1 document has no
+    // applicantId, because the applicant was the last entry by definition.
+    const migrated = migrateDraft({
+      version: 1,
+      lines: [
+        {
+          id: "l1",
+          name: "Your line",
+          nextPersonSeq: 3,
+          people: [
+            { id: "p2", birthDate: "1944-02-11", birthRegion: "canada" },
+            { id: "p1", birthDate: "1970-08-08", birthRegion: "outside" },
+          ],
+        },
+      ],
+      currentLineId: "l1",
+    });
+    expect(migrated.version).toBe(DRAFT_VERSION);
+    expect(migrated.lines).toHaveLength(1);
+    expect(migrated.lines[0].people.map((p) => p.id)).toEqual(["p2", "p1"]);
+    expect(migrated.lines[0].applicantId).toBe("p1");
+    expect(migrated.lines[0].noLaterDescendant).toBe(false);
+    expect(applicantOf(migrated.lines[0])?.id).toBe("p1");
+  });
+
+  it("refuses an applicantId naming somebody who is not in the line", () => {
+    // It would otherwise index off the end of the chain, and every read of the
+    // applicant on the report would be undefined.
+    const migrated = migrateDraft({
+      version: DRAFT_VERSION,
+      lines: [
+        { id: "l1", name: "L", applicantId: "p9", people: [{ id: "p1" }] },
+      ],
+      currentLineId: "l1",
+    });
+    expect(migrated.lines[0].applicantId).toBe("p1");
+  });
+
+  it("keeps an applicantId that is not the last person", () => {
+    const migrated = migrateDraft({
+      version: DRAFT_VERSION,
+      lines: [
+        {
+          id: "l1",
+          name: "L",
+          applicantId: "p1",
+          people: [{ id: "p2" }, { id: "p1" }, { id: "p3" }],
+        },
+      ],
+      currentLineId: "l1",
+    });
+    expect(migrated.lines[0].applicantId).toBe("p1");
+  });
+
+  it("validates one line on its own, for a document that carries one", () => {
+    // What a markdown import reuses, rather than writing a second validator.
+    expect(migrateLine({ id: "l1", people: [{ id: "p1" }] })?.applicantId).toBe(
+      "p1",
+    );
+    expect(migrateLine({ id: "l1", people: [] })).toBeNull();
+    expect(migrateLine({ people: [{ id: "p1" }] })).toBeNull();
+    expect(migrateLine("nonsense")).toBeNull();
+  });
+
   it("round-trips a full draft unchanged", () => {
     const draft: Draft = {
       ...emptyDraft(),
@@ -460,6 +615,24 @@ describe("forkLine", () => {
       "p1",
     ]);
     expect(draft.lines).toHaveLength(1);
+  });
+
+  it("carries the applicant through, and falls back when the fork drops them", () => {
+    const withChild = addDescendant(gcmsLine);
+    const draft: Draft = {
+      ...emptyDraft(),
+      lines: [withChild],
+      currentLineId: "l1",
+    };
+    // Forking above the applicant keeps them, so they stay the subject.
+    expect(forkLine(draft, "l1", "p3", "Kept")?.draft.lines[1].applicantId).toBe(
+      "p1",
+    );
+    // Forking at the child drops the applicant, and the youngest person kept is
+    // the subject of the new line, which is where the interview started from.
+    expect(forkLine(draft, "l1", "p6", "Dropped")?.draft.lines[1].applicantId).toBe(
+      "p6",
+    );
   });
 
   it("returns null for a person or a line that is not there", () => {
