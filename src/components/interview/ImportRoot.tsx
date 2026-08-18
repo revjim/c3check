@@ -1,7 +1,17 @@
 "use client";
 
 /**
- * Importing a family tree file.
+ * Importing a file: a family tree, or a c3check download.
+ *
+ * Two different jobs behind one file input, told apart by looking inside the
+ * file rather than by trusting its extension. A GEDCOM is a starting point, and
+ * every date and place in it is treated as a suggestion the interview still asks
+ * about. A c3check markdown document is the opposite: it is an interview that was
+ * already answered, so it is restored whole and lands on the result.
+ *
+ * Restoring is non-destructive. It appends a line and makes it current, the same
+ * way starting one does, so somebody who imports a file over a half-finished
+ * interview loses nothing.
  *
  * Three things about this screen are privacy decisions rather than design ones,
  * and all three are said out loud on the page rather than only in /privacy:
@@ -26,8 +36,11 @@ import { useMemo, useState } from "react";
 import { buttonClasses } from "@/components/button";
 import { Radio, RadioGroup } from "./fields";
 import { nextLineId } from "@/lib/draft";
+import type { LineDraft } from "@/lib/draft";
 import { updateDraft } from "@/lib/draftStore";
 import { formatBirthDate, plural } from "@/lib/format";
+import { isDone } from "@/lib/interview";
+import { looksLikeLineDocument, parseLineDocument } from "@/lib/markdown";
 import { describeGedcomDate } from "@/lib/gedcom/dates";
 import {
   MAX_BYTES,
@@ -46,7 +59,9 @@ type Stage =
   | { kind: "empty" }
   | { kind: "reading" }
   | { kind: "failed"; message: string }
-  | { kind: "loaded"; file: GedcomFile; name: string };
+  | { kind: "loaded"; file: GedcomFile; name: string }
+  /** A c3check document, already restored, with the route change in flight. */
+  | { kind: "restored"; lineName: string };
 
 /** How many suggestions get the real engine run over them. */
 const PREVIEWED = 5;
@@ -70,6 +85,13 @@ export function ImportRoot() {
     setStage({ kind: "reading" });
     try {
       const text = await file.text();
+      // Sniffed, not taken from the extension. A GEDCOM saved as .md and a
+      // c3check document saved as .txt are both things people do, and the
+      // contents are unambiguous either way.
+      if (looksLikeLineDocument(text)) {
+        restore(text);
+        return;
+      }
       setStage({ kind: "loaded", file: parseGedcom(text), name: file.name });
       setChosen(null);
       setQuery("");
@@ -79,6 +101,35 @@ export function ImportRoot() {
         message: "That file could not be read from your device.",
       });
     }
+  }
+
+  /**
+   * Puts a downloaded interview back, as a new line.
+   *
+   * The same three steps as `start()` below, and for the same reason: build the
+   * line off-store, take an id from the draft, then append it and make it
+   * current in one write. `pendingEdit` is dropped on the way in, because a
+   * pinned question from whenever the file was saved is not where anybody
+   * arriving from a file wants to land.
+   */
+  function restore(text: string) {
+    const parsed = parseLineDocument(text);
+    if (!parsed.ok) {
+      setStage({ kind: "failed", message: parsed.reason });
+      return;
+    }
+    const id = nextLineId(draft);
+    const line: LineDraft = { ...parsed.line, id, pendingEdit: null };
+    updateDraft((current) => ({
+      ...current,
+      lines: [...current.lines, line],
+      currentLineId: id,
+    }));
+    setStage({ kind: "restored", lineName: line.name });
+    // A finished file lands on the report, and the trail on the way back into it
+    // is right there for changing any answer; an unfinished one carries on where
+    // it left off. The same rule `CheckEntry.resume` follows.
+    router.push(isDone(line) ? "/check/result" : "/check/interview");
   }
 
   function forget() {
@@ -101,13 +152,19 @@ export function ImportRoot() {
   return (
     <div className="mx-auto w-full max-w-2xl px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">
-        Start from a family tree file
+        Start from a file
       </h1>
       <p className="mt-3 leading-7 text-muted">
         A GEDCOM export from Ancestry, MyHeritage, FamilySearch, Gramps or any
         other program. It saves typing; it does not save answering, because a
         family tree does not record the things the <em>Citizenship Act</em>{" "}
         turns on.
+      </p>
+      <p className="mt-3 leading-7 text-muted">
+        Or a markdown file you downloaded from c3check yourself, from the foot of
+        a result. That is a whole interview rather than a starting point: every
+        answer comes back, and you land straight on the result with the trail
+        back into any question.
       </p>
 
       <div className="mt-6 rounded-lg border border-brand/30 bg-brand/5 p-5 leading-7">
@@ -117,11 +174,13 @@ export function ImportRoot() {
             anywhere.
           </strong>{" "}
           It is held in the page while you use it and discarded the moment you
-          reload or press &quot;Forget this file&quot;. Nothing from it is saved
-          on this device except the people in the line you actually choose.
+          reload or press &quot;Forget this file&quot;. Nothing from a family tree
+          is saved on this device except the people in the line you actually
+          choose. A c3check file is different by design: it is your own interview
+          coming back, so all of it is restored.
         </p>
         <p className="mt-3 text-sm text-muted">
-          Most of the file is never even read. This tool takes names, dates,
+          Most of a family tree is never even read. This tool takes names, dates,
           places, sexes and parent links; it drops notes, sources, photographs,
           addresses and causes of death before they reach memory.{" "}
           <Link href="/privacy" className="text-brand underline underline-offset-4">
@@ -158,16 +217,16 @@ function Picker({
 }) {
   return (
     <div className="mt-8">
-      <label htmlFor="gedcom" className="block text-sm font-medium">
-        Choose a .ged file
+      <label htmlFor="import-file" className="block text-sm font-medium">
+        Choose a .ged family tree file, or a .md file you downloaded from here
       </label>
       {/* A plain file input rather than `next/form`, whose string-action path
           mishandles file inputs. Parsing happens in this handler and never
           during render. */}
       <input
-        id="gedcom"
+        id="import-file"
         type="file"
-        accept=".ged,.gedcom"
+        accept=".ged,.gedcom,.md"
         onChange={(event) => {
           const file = event.target.files?.[0];
           if (file !== undefined) onFile(file);
@@ -177,6 +236,9 @@ function Picker({
 
       <p aria-live="polite" className="mt-4 text-sm leading-6">
         {stage.kind === "reading" ? "Reading your file..." : null}
+        {stage.kind === "restored"
+          ? `Restored "${stage.lineName}". Opening it now...`
+          : null}
         {stage.kind === "failed" ? (
           <span role="alert" className="font-medium text-brand">
             {stage.message}

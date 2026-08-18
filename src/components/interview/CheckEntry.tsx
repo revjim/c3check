@@ -56,12 +56,13 @@ export function CheckEntry() {
             Start with yourself
           </button>
           <Link href="/check/import" className={buttonClasses("secondary")}>
-            Import a family tree file
+            Import a file
           </Link>
         </div>
         <p className="mt-3 text-sm leading-6 text-subtle">
-          A GEDCOM file is read in this browser and never uploaded. It saves
-          typing; it does not save answering.
+          A GEDCOM family tree file, or a c3check file you downloaded from a
+          result of your own. Either is read in this browser and never uploaded. A
+          family tree saves typing; a c3check file brings back every answer.
         </p>
 
         <p className="mt-8 text-sm leading-6 text-subtle">
@@ -110,7 +111,7 @@ export function CheckEntry() {
           Start another line
         </button>
         <Link href="/check/import" className={buttonClasses("secondary")}>
-          Import a family tree file
+          Import a file
         </Link>
         <Link href="/check/lines" className="text-sm text-brand underline underline-offset-4">
           Manage saved lines

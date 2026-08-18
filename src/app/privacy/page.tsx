@@ -82,23 +82,42 @@ export default function PrivacyPage() {
           Putting a family line into a URL would place it in your browser
           history, in the history of anyone you sent it to, and in the logs of
           any service the link passed through. The convenience is not worth
-          that, so results live only in the page you are looking at. To keep a
-          copy, print the results page or use the button that copies it as
-          plain text.
+          that, so results live only in the page you are looking at.
+        </p>
+        <p>
+          To keep a copy, print the results page, use the button that copies it
+          as plain text, or download it as a markdown file. All three are made in
+          your browser and none of them is uploaded anywhere.
+        </p>
+        <p>
+          <strong className="font-medium text-foreground">
+            The download holds every name, date and place you entered.
+          </strong>{" "}
+          That is the point of it: it also contains your interview as data, so
+          uploading it again restores every answer. It is an ordinary file on
+          your device, which means it is no longer covered by anything this
+          policy can promise. It goes wherever you send it, it can be read by
+          anyone who gets a copy, and an email attachment sits on a mail server.
+          If a family line is sensitive, treat the file the way you would treat a
+          photograph of the certificates it is about.
         </p>
       </Section>
 
-      <Section title="Family tree files">
+      <Section title="Files you import">
         <p>
-          If you import a GEDCOM file, it is read by code running in your
+          If you import a file, whether a GEDCOM family tree or a c3check
+          download of your own, it is read by code running in your
           browser. There is no upload and no server endpoint that receives it.
           The parsed file is held in the page while you use it and is discarded
           when you reload, navigate away, or press &quot;Forget this
-          file&quot;. Only the people in the line you actually choose are copied
-          into the saved draft described above.
+          file&quot;. From a family tree, only the people in the line you
+          actually choose are copied into the saved draft described above. A
+          c3check file is your own interview coming back, so all of it is
+          restored into a new line; nothing already saved on the device is
+          overwritten or deleted.
         </p>
         <p>
-          Most of the file is never read at all. A family tree carries notes,
+          Most of a family tree is never read at all. It carries notes,
           sources, photographs, addresses, causes of death and medical facts
           about living people who have not agreed to anything, so the parser
           reads only names, sexes, dates, places and parent links, and discards
