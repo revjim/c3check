@@ -16,6 +16,14 @@
  * them all before the dialog and puts back exactly the ones that were closed
  * afterwards, so the page on screen looks the same as it did.
  *
+ * **The help text is collapsed.** What the buttons do is legible from their
+ * labels; the three paragraphs under them exist for the reader who wants to know
+ * which file comes back, and putting them on the page open pushed the report
+ * itself below the fold. It is a `Collapsible` like the report's own sections, so
+ * `beforeprint` opens it along with the rest, which costs nothing here: this whole
+ * block is `print:hidden`, so unlike the sections below it, nothing is lost from a
+ * printout by leaving it shut.
+ *
  * The clipboard falls back to a hidden textarea and `execCommand`, because
  * `navigator.clipboard` is unavailable over plain HTTP and in a few browsers
  * that people running an old machine to research their grandparents genuinely
@@ -25,6 +33,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { buttonClasses } from "@/components/button";
+import { Collapsible } from "./Collapsible";
 
 export function ReportActions({
   reportFor,
@@ -141,35 +150,45 @@ export function ReportActions({
               : null}
         </span>
       </div>
-      <div className="mt-3 space-y-2 text-sm leading-6 text-subtle">
-        <p>
-          The download is a markdown file, saved as{" "}
-          <span className="font-mono break-all">{fileName}</span>. Markdown is
-          ordinary
-          text: it opens in any editor, notes app or mail client, and it reads
-          as the report on this page, with every answer you gave written out in
-          a fenced block at the foot.
-        </p>
-        <p>
-          That block is what makes it the one thing here that comes back. Bring
-          the file to{" "}
-          <Link
-            href="/check/import"
-            className="text-brand underline underline-offset-4"
-          >
-            start from a file
-          </Link>{" "}
-          and the whole interview is restored: you land straight back on this
-          result, free to change an answer, carry the line further, or start
-          over from what you already entered instead of typing it again. A
-          printout and the copied text are for reading only; this file is the
-          one that can be read back in, so treat it as your save file.
-        </p>
-        <p>
-          It holds every name, date and place you entered, for you and for your
-          relatives. Nothing is uploaded to produce it, and from then on it is
-          as private as wherever you keep it.
-        </p>
+      <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+        <Collapsible
+          summary={
+            <h2 className="text-sm font-medium">
+              What each of these gives you, and which one comes back
+            </h2>
+          }
+        >
+          <div className="mt-3 space-y-2 text-sm leading-6 text-subtle">
+            <p>
+              The download is a markdown file, saved as{" "}
+              <span className="font-mono break-all">{fileName}</span>. Markdown
+              is ordinary text: it opens in any editor, notes app or mail
+              client, and it reads as the report on this page, with every answer
+              you gave written out in a fenced block at the foot.
+            </p>
+            <p>
+              That block is what makes it the one thing here that comes back.
+              Bring the file to{" "}
+              <Link
+                href="/check/import"
+                className="text-brand underline underline-offset-4"
+              >
+                start from a file
+              </Link>{" "}
+              and the whole interview is restored: you land straight back on
+              this result, free to change an answer, carry the line further, or
+              start over from what you already entered instead of typing it
+              again. A printout and the copied text are for reading only; this
+              file is the one that can be read back in, so treat it as your save
+              file.
+            </p>
+            <p>
+              It holds every name, date and place you entered, for you and for
+              your relatives. Nothing is uploaded to produce it, and from then
+              on it is as private as wherever you keep it.
+            </p>
+          </div>
+        </Collapsible>
       </div>
     </div>
   );
