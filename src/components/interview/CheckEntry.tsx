@@ -141,7 +141,18 @@ function LineCard({
       <p className="mt-1 text-sm leading-6 text-muted">
         {progressSummary(line)}
       </p>
-      <button type="button" onClick={onOpen} className={buttonClasses("secondary", "mt-4")}>
+      {/*
+        Primary on the emphasised card only. That card is the current line, so
+        there is exactly one of them, and picking the work back up is the whole
+        point of the page: it should be the one thing wearing the brand colour.
+        The other lines keep the outline, or a stack of red buttons would leave
+        nothing looking like the obvious move.
+      */}
+      <button
+        type="button"
+        onClick={onOpen}
+        className={buttonClasses(emphasis ? "primary" : "secondary", "mt-4")}
+      >
         {ready ? "See the result" : "Continue"}
       </button>
     </div>
