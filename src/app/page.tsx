@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/button";
-import { CoffeeFrame } from "@/components/CoffeeFrame";
 import { ACT_AS_OF } from "@/lib/sources";
 
 const STEPS = [
@@ -89,12 +88,9 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="mt-10 flex flex-wrap items-center gap-x-5 gap-y-3">
-        <CoffeeFrame />
-        <p className="text-sm text-subtle">
-          No ads, no account, nothing for sale. This is the tip jar.
-        </p>
-      </div>
+      <p className="mt-10 text-sm text-subtle">
+        No ads, no account, nothing for sale.
+      </p>
     </div>
   );
 }

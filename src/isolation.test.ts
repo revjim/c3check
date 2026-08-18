@@ -7,11 +7,14 @@
  * untrue at once: it can read the DOM, which holds the whole family line, and it
  * can read and write storage.
  *
- * Exactly one third-party script runs on this site, the Buy Me a Coffee button,
- * and it runs inside `public/coffee.html` loaded in a sandboxed frame. The whole
- * guarantee is the absence of one token, `allow-same-origin`, in one attribute,
- * which is far too easy to add back while making an unrelated change. So this
- * walks the tree and fails loudly instead, in the style of `src/ascii.test.ts`.
+ * There is now no third-party code at all: the donation widget that used to run
+ * in a sandboxed frame is gone, and nothing replaced it. So /privacy says
+ * plainly that every line of code served here is served from here, and these
+ * tests are what keeps that sentence true, in the style of `src/ascii.test.ts`.
+ *
+ * The frame rules below have nothing to catch today, and that is the point of
+ * keeping them. The next embed somebody reaches for is the dangerous one, and it
+ * will arrive in a change about something else entirely.
  *
  * This is the same kind of enforcement the GEDCOM parser already has: /privacy
  * says a promise about the code is kept by a test rather than by memory, and
@@ -24,13 +27,6 @@ import { describe, expect, it } from "vitest";
 
 const SRC = fileURLToPath(new URL(".", import.meta.url));
 const PUBLIC = fileURLToPath(new URL("../public/", import.meta.url));
-
-/**
- * Script hosts that must appear nowhere under `src/`, in markup, in prose, or in
- * a comment. Naming one is how the rule stops being checkable: a reviewer who
- * sees the host in a component cannot tell whether it is loaded or discussed.
- */
-const THIRD_PARTY_SCRIPT_HOSTS = ["cdnjs.buymeacoffee.com"];
 
 function filesUnder(dir: string, extensions: string[]): string[] {
   const out: string[] = [];
@@ -63,11 +59,15 @@ function sandboxValues(text: string): string[] {
   );
 }
 
+/** Every literal `src="..."` value, wherever it appears. */
+function srcValues(text: string): string[] {
+  return [...text.matchAll(/\bsrc\s*=\s*"([^"]*)"/g)].map((match) => match[1]);
+}
+
 describe("frames", () => {
-  it("finds markup to check, including the coffee document", () => {
+  it("finds markup to check", () => {
     // Guards the walk itself: a broken path would make every test below pass.
     expect(MARKUP.length).toBeGreaterThan(10);
-    expect(MARKUP.some((file) => file.endsWith("coffee.html"))).toBe(true);
   });
 
   it("sandboxes every iframe", () => {
@@ -91,8 +91,8 @@ describe("frames", () => {
   });
 
   it("never grants a sandboxed frame the parent's origin", () => {
-    // The one token this whole arrangement rests on. With it, the frame shares
-    // this origin and can read `localStorage` and the family line in the DOM.
+    // The one token an embed like this rests on. With it, the frame shares this
+    // origin and can read `localStorage` and the family line in the DOM.
     for (const file of [...SOURCE, ...MARKUP]) {
       const text = readFileSync(file, "utf8");
       for (const value of sandboxValues(text)) {
@@ -107,7 +107,7 @@ describe("frames", () => {
 describe("scripts", () => {
   it("loads no script from anywhere under src", () => {
     // A `<script src>` in a component would run on this origin. Same-origin
-    // code is an import; third-party code goes in a sandboxed frame document.
+    // code is an import; there is nowhere else code is allowed to come from.
     for (const file of SOURCE) {
       if (file.endsWith("isolation.test.ts")) continue;
       const text = readFileSync(file, "utf8");
@@ -116,23 +116,18 @@ describe("scripts", () => {
     }
   });
 
-  it("keeps every third-party script host out of src entirely", () => {
-    for (const file of SOURCE) {
+  it("loads nothing at all from another host", () => {
+    // Broader than a list of known widget hosts, which only catches the ones
+    // somebody thought of: no `src` anywhere may leave this origin, whether it
+    // is a script, a frame, an image or a font.
+    for (const file of [...SOURCE, ...MARKUP]) {
       if (file.endsWith("isolation.test.ts")) continue;
       const text = readFileSync(file, "utf8");
-      const found = THIRD_PARTY_SCRIPT_HOSTS.filter((host) =>
-        text.includes(host),
+      const remote = srcValues(text).filter((value) =>
+        /^(https?:)?\/\//i.test(value),
       );
-      expect(found, label(file)).toEqual([]);
+      expect(remote, label(file)).toEqual([]);
     }
-  });
-
-  it("keeps the one third-party script inside the sandboxed document", () => {
-    // The other half: the widget really is still there. A refactor that quietly
-    // dropped it would otherwise pass everything above.
-    const text = readFileSync(`${PUBLIC}coffee.html`, "utf8");
-    expect(text).toContain(THIRD_PARTY_SCRIPT_HOSTS[0]);
-    expect(text).toContain('data-name="bmc-button"');
   });
 });
 

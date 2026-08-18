@@ -31,7 +31,6 @@ import {
 import { SourceLink } from "./SourceLink";
 import { buttonClasses } from "@/components/button";
 import { ClearDataButton } from "@/components/ClearDataButton";
-import { CoffeeFrame } from "@/components/CoffeeFrame";
 import type { FactId, MissingFact } from "@/lib/c3";
 import {
   classifyLine,
@@ -222,19 +221,6 @@ function Report({ line }: { line: LineDraft }) {
       <Checklist result={result} />
 
       <Reasoning result={result} />
-
-      {/* Printed, this is a stranger asking a stranger for money on a document
-          about their family, so it stays on the screen it was earned on. An
-          iframe does not print usefully either way. */}
-      <section className="mt-12 break-inside-avoid rounded-lg border border-border p-5 print:hidden">
-        <h2 className="font-medium">If this saved you an afternoon</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">
-          c3check is free, carries no ads, and has nothing to sell you. It is
-          one person reading the <em>Citizenship Act</em> so you do not have to.
-          A coffee is the whole business model.
-        </p>
-        <CoffeeFrame className="mt-4" />
-      </section>
 
       <footer className="mt-16 break-inside-avoid border-t border-border pt-6 text-sm leading-6 text-muted">
         <p>
