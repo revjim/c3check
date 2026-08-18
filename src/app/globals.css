@@ -7,8 +7,10 @@
   --subtle: #71717a;
   --border: #e4e4e7;
   --surface: #fafafa;
-  /* Deliberately not flag red; see src/components/Logo.tsx. */
-  --brand: #c2410c;
+  /* The red of the logo artwork, sampled from it; see src/components/Logo.tsx
+     for what that colour costs and why it was chosen anyway. 7.9:1 on white,
+     which carries both brand text and white text on a brand button. */
+  --brand: #a2171a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,7 +21,9 @@
     --subtle: #71717a;
     --border: #27272a;
     --surface: #131316;
-    --brand: #f97316;
+    /* Lifted off the artwork red, which is 2.5:1 on this background and
+       unreadable as link text. */
+    --brand: #ef4444;
   }
 }
 
@@ -61,7 +65,7 @@ body {
     --subtle: #555555;
     --border: #999999;
     --surface: #ffffff;
-    /* Ink, not brand. An emphatic card in orange costs a colour cartridge and
+    /* Ink, not brand. An emphatic card in red costs a colour cartridge and
        reads worse than a rule on a laser printer. */
     --brand: #000000;
   }

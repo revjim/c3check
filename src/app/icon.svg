@@ -1,46 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <!-- The same mark as src/components/Logo.tsx; see the note there before
-       editing. A favicon cannot read the page's CSS variables, so the two
-       token values it needs are inlined and flipped by media query. -->
+       editing. A favicon cannot read the page's CSS variables, so the one
+       colour it needs is inlined and flipped by media query. The arrows are a
+       cut-out, so they take the colour of the tab behind them. -->
   <style>
-    .leaf { fill: #ea580c; stroke: #ea580c; }
-    .tree { stroke: #ffffff; }
-    .node { fill: #ffffff; }
+    .leaf { fill: #a2171a; }
     @media (prefers-color-scheme: dark) {
-      .leaf { fill: #f97316; stroke: #f97316; }
-      .tree { stroke: #09090b; }
-      .node { fill: #09090b; }
+      .leaf { fill: #ef4444; }
     }
   </style>
   <path
     class="leaf"
-    stroke-width="0.5"
-    stroke-linejoin="round"
-    d="M32 6.5L38.35 17.95L43.93 15.45L41.81 32.95L50.09 25.06L51.53 29.49L61.15 27.57L58.26 37.77L62.02 40.17L47.29 52.96L48.54 57.48L15.46 57.48L16.71 52.96L1.98 40.17L5.74 37.77L2.85 27.57L12.47 29.49L13.91 25.06L22.19 32.95L20.07 15.45L25.65 17.95Z"
+    fill-rule="evenodd"
+    d="M31.88 1.50L32.35 1.62L36.86 10.53L37.67 11.45L38.48 11.57L42.19 9.60L43.00 9.60L40.57 24.65L41.72 25.00L48.09 17.94L48.55 18.05L49.48 21.52L50.17 21.99L58.28 20.25L55.96 29.63L56.77 30.55L59.20 31.59L58.97 32.29L46.24 42.24L46.01 44.10L47.05 46.99L46.93 47.68L37.32 46.06L36.28 46.06L35.13 46.76L34.66 51.62L35.47 62.15L33.74 62.62L30.38 62.62L28.64 62.15L29.45 51.62L28.99 46.76L27.83 46.06L26.79 46.06L17.18 47.68L17.07 46.99L18.11 44.10L17.88 42.24L4.91 32.06L5.03 31.48L7.35 30.55L8.16 29.63L5.84 20.25L13.94 21.99L14.64 21.52L15.56 18.05L16.03 17.94L22.39 25.00L23.55 24.65L21.12 9.60L21.93 9.60L25.63 11.57L26.44 11.45L27.25 10.53ZM32.00 8.56L36.86 16.55L36.63 17.13L34.31 16.66L33.62 17.13L33.50 34.72L33.97 36.34L35.24 37.15L35.82 37.04L46.70 28.93L47.05 28.12L45.20 26.73L45.08 25.92L54.22 24.53L53.53 27.78L52.83 28.82L51.45 33.45L50.52 32.98L49.48 31.13L47.39 32.17L46.70 33.10L37.56 39.81L36.17 43.86L33.27 45.83L30.38 45.72L28.64 44.56L27.49 42.82L26.56 39.81L15.10 31.13L14.17 31.59L13.60 32.98L12.79 33.56L9.89 25.11L9.89 24.53L10.24 24.53L19.04 25.92L18.92 26.73L17.07 28.12L17.42 28.93L28.30 37.04L28.87 37.15L30.15 36.34L30.61 34.72L30.50 17.13L30.15 16.66L27.49 17.13L27.25 16.55Z"
   />
-  <g class="tree" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path stroke-width="2.9" stroke-linecap="butt" d="M32 51.1V57.8" />
-    <path stroke-width="1.6" d="M32 15.4V54.1" />
-    <path
-      stroke-width="1.6"
-      d="M32 54.6C31 50.1 27.6 46.1 22.6 42.7C20.2 41.4 15 40.9 8.6 40.9M32 54.6C33 50.1 36.4 46.1 41.4 42.7C43.8 41.4 49 40.9 55.4 40.9"
-    />
-    <path
-      stroke-width="1.25"
-      d="M24.6 21.9C25.8 24.7 27.7 27.4 31.6 32.4M39.4 21.9C38.2 24.7 36.3 27.4 32.4 32.4M8.4 32.5L19 40.9M55.6 32.5L45 40.9"
-    />
-    <path
-      stroke-width="0.85"
-      d="M16 31.3L18.3 40M48 31.3L45.7 40M25.6 34.3C25.6 36.5 27.6 38.5 31.8 41M38.4 34.3C38.4 36.5 36.4 38.5 32.2 41M24.4 44.7C21.5 46.1 18.5 46.6 15.7 46.5M39.6 44.7C42.5 46.1 45.5 46.6 48.3 46.5"
-    />
-  </g>
-  <g class="node">
-    <circle cx="32" cy="13.9" r="1.85" />
-    <circle cx="24.2" cy="21.2" r="1.85" />
-    <circle cx="39.8" cy="21.2" r="1.85" />
-    <circle cx="7.8" cy="32.2" r="1.85" />
-    <circle cx="56.2" cy="32.2" r="1.85" />
-    <circle cx="7.8" cy="40.85" r="1.85" />
-    <circle cx="56.2" cy="40.85" r="1.85" />
-  </g>
 </svg>

@@ -5,9 +5,11 @@
  * are Server Components, and a component would drag them across a client
  * boundary for the sake of a string of Tailwind classes.
  *
- * No red anywhere, including for destructive actions: red is barred by the
- * brand rule (see `src/components/Logo.tsx`), and nothing here deletes anything
- * the user cannot re-enter.
+ * Nothing is coloured for danger, because the brand itself is now red (see
+ * `src/components/Logo.tsx`) and a red button on this site means "primary", not
+ * "careful". That costs nothing here: nothing on the site deletes anything the
+ * user cannot re-enter, and the one button that clears stored data says so in
+ * words rather than in colour.
  */
 
 export type ButtonVariant = "primary" | "secondary" | "quiet";
